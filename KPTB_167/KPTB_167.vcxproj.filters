@@ -30,6 +30,18 @@
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Geode.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Group.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MatrixTransform.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Node.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -42,6 +54,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Skybox.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Geode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MatrixTransform.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

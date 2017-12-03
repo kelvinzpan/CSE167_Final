@@ -1,5 +1,7 @@
 #include "Window.h"
 
+// NOTE: Model to world coordinates are: +X is LEFT, +Y is UP, +Z is IN
+
 // Window parameters
 const char* window_title = "GLFW Starter Project";
 int Window::width;
@@ -25,9 +27,16 @@ GLint shaderProgram;
 #define FRAGMENT_SHADER_PATH "shader.frag"
 
 // Default camera parameters
-glm::vec3 cam_pos(0.0f, 0.0f, 20.0f);		// e  | Position of camera
-glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);	// d  | This is where the camera looks at
-glm::vec3 cam_up(0.0f, 1.0f, 0.0f);			// up | What orientation "up" is
+glm::vec3 cam_pos(0.0f, 0.0f, 20.0f);
+glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);
+glm::vec3 cam_up(0.0f, 1.0f, 0.0f);
+
+// Scene Graph parameters
+glm::mat4 Window::C;
+MatrixTransform* world;
+Group* player;
+MatrixTransform* playerMT;
+Geode* playerModel;
 
 void Window::initialize_objects()
 {
@@ -41,6 +50,21 @@ void Window::initialize_objects()
 	glUniform1i(glGetUniformLocation(Window::skyboxShaderProgram, "skybox"), 0);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
+
+	initialize_scene_graph();
+}
+
+void Window::initialize_scene_graph()
+{
+	Window::C = glm::mat4(1.0f);
+	world = new MatrixTransform();
+
+	player = new Group();
+	world->addChild(player);
+	playerMT = new MatrixTransform();
+	player->addChild(playerMT);
+	playerModel = new Geode("res/obj/dragon.obj");
+	playerMT->addChild(playerModel);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -118,6 +142,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
+	world->update();
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -125,12 +150,13 @@ void Window::display_callback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	// Skybox
-	glUseProgram(Window::skyboxShaderProgram);
-	Window::skybox->draw(Window::skyboxShaderProgram);
-
 	// Use the shader of programID
 	glUseProgram(shaderProgram);
+	world->draw(shaderProgram, Window::C);
+
+	// Skybox (MUST DRAW LAST)
+	glUseProgram(Window::skyboxShaderProgram);
+	Window::skybox->draw(Window::skyboxShaderProgram);
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -157,18 +183,18 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 	switch (action)
 	{
 	case GLFW_PRESS:
-		glfwGetCursorPos(window, &mousePosX, &mousePosY);
-		std::cout << "x: " << mousePosX << ", y: " << mousePosY << std::endl;
+		glfwGetCursorPos(window, &Window::mousePosX, &Window::mousePosY);
+		std::cout << "x: " << Window::mousePosX << ", y: " << Window::mousePosY << std::endl;
 		switch (button)
 		{
 		case GLFW_MOUSE_BUTTON_LEFT:
 			std::cout << "Mouse left-clicked." << std::endl;
-			pressMouseLeft = true;
+			Window::pressMouseLeft = true;
 			break;
 
 		case GLFW_MOUSE_BUTTON_RIGHT:
 			std::cout << "Mouse right-clicked." << std::endl;
-			pressMouseRight = true;
+			Window::pressMouseRight = true;
 			break;
 		}
 		break;
@@ -178,12 +204,12 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 		{
 		case GLFW_MOUSE_BUTTON_LEFT:
 			std::cout << "Released mouse left-click." << std::endl;
-			pressMouseLeft = false;
+			Window::pressMouseLeft = false;
 			break;
 
 		case GLFW_MOUSE_BUTTON_RIGHT:
 			std::cout << "Released mouse right-click." << std::endl;
-			pressMouseRight = false;
+			Window::pressMouseRight = false;
 			break;
 		}
 		break;
@@ -192,10 +218,10 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 
 void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (pressMouseLeft)
+	if (Window::pressMouseLeft)
 	{
 		// Trackball rotate by cursor movement
-		glm::vec3 prevPos = trackballMap(glm::vec3(mousePosX, mousePosY, 0));
+		glm::vec3 prevPos = trackballMap(glm::vec3(Window::mousePosX, Window::mousePosY, 0));
 		glm::vec3 newPos = trackballMap(glm::vec3(xpos, ypos, 0));
 		glm::vec3 direction = newPos - prevPos;
 		float velocity = (float)direction.length();
@@ -210,14 +236,14 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 		}
 	}
-	if (pressMouseRight)
+	if (Window::pressMouseRight)
 	{
 		// Not necessary
 	}
-	if (pressMouseLeft || pressMouseRight)
+	if (Window::pressMouseLeft || Window::pressMouseRight)
 	{
-		mousePosX = xpos;
-		mousePosY = ypos;
+		Window::mousePosX = xpos;
+		Window::mousePosY = ypos;
 	}
 }
 
@@ -241,9 +267,29 @@ void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	if (yoffset > 0)
 	{
 		// Scrolling up
+		std::cout << "Scrolling up, zooming in." << std::endl;
+		glm::vec3 currDir = glm::normalize(cam_pos) * 5.0f;
+		if (cam_pos.x - currDir.x == 0.0f && cam_pos.y - currDir.y == 0.0f && cam_pos.z - currDir.z == 0.0f)
+		{
+			return;
+		}
+		glm::vec3 new_cam_pos = cam_pos - currDir;
+		if (glm::dot(new_cam_pos, cam_pos) == 1)
+		{
+			return;
+		}
+		cam_pos = new_cam_pos;
+		V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	}
 	else if (yoffset < 0)
 	{
 		// Scrolling down
+		std::cout << "Scrolling down, zooming out." << std::endl;
+		glm::vec3 currDir = glm::normalize(cam_pos) * 5.0f;
+		float newX = cam_pos.x + currDir.x;
+		float newY = cam_pos.y + currDir.y;
+		float newZ = cam_pos.z + currDir.z;
+		cam_pos = cam_pos + currDir;
+		V = glm::lookAt(cam_pos, cam_look_at, cam_up);
 	}
 }

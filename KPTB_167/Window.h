@@ -8,6 +8,9 @@
 #include <GL/glew.h>
 #endif
 #include <GLFW/glfw3.h>
+#ifndef GLM_FORCE_RADIANS
+#define GLM_FORCE_RADIANS
+#endif
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -16,6 +19,10 @@
 
 #include "shader.h"
 #include "Skybox.h"
+#include "Node.h"
+#include "Group.h"
+#include "Geode.h"
+#include "MatrixTransform.h"
 
 class Window
 {
@@ -43,6 +50,9 @@ public:
 
 	static Skybox* skybox;
 	static GLint skyboxShaderProgram;
+
+	static void initialize_scene_graph();
+	static glm::mat4 C;
 };
 
 #endif

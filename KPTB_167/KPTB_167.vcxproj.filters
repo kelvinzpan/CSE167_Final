@@ -77,5 +77,11 @@
     <None Include="skybox_shader.frag">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="toon_shader.frag">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="toon_shader.vert">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

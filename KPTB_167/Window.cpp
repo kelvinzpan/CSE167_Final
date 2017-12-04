@@ -26,6 +26,11 @@ GLint shaderProgram;
 #define VERTEX_SHADER_PATH "shader.vert"
 #define FRAGMENT_SHADER_PATH "shader.frag"
 
+// Toon shader
+GLint toonShaderProgram;
+#define TOON_VERTEX_SHADER_PATH "toon_shader.vert"
+#define TOON_FRAGMENT_SHADER_PATH "toon_shader.frag"
+
 // Default camera parameters
 glm::vec3 cam_pos(0.0f, 0.0f, 20.0f);
 glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);
@@ -42,6 +47,7 @@ void Window::initialize_objects()
 {
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
+	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
 
 	// Set up skybox
 	Window::skybox = new Skybox();
@@ -151,8 +157,8 @@ void Window::display_callback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// Use the shader of programID
-	glUseProgram(shaderProgram);
-	world->draw(shaderProgram, Window::C);
+	glUseProgram(toonShaderProgram);
+	world->draw(toonShaderProgram, Window::C);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);

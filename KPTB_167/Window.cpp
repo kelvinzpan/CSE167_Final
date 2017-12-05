@@ -78,7 +78,7 @@ void Window::initialize_scene_graph()
 	playerModel = new Geode("res/objects/dragon.obj");
 	playerMT->addChild(playerModel);
 
-	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));
+	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)));
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.

@@ -77,6 +77,7 @@ void Geode::draw(GLuint program, glm::mat4 C)
 	glUniform3f(glGetUniformLocation(program, "light.light_color"), light.light_color.x, light.light_color.y, light.light_color.z);
 	glUniform3f(glGetUniformLocation(program, "light.light_dir"), light.light_dir.x, light.light_dir.y, light.light_dir.z);
 	glUniform3f(glGetUniformLocation(program, "camPos"), Window::cam_pos.x, Window::cam_pos.y, Window::cam_pos.z);
+	//std::cout << "(" << Window::cam_pos.x << ", " << Window::cam_pos.y << ", " << Window::cam_pos.z << ")" << std::endl;
 
 	// Now draw the OBJObject. We simply need to bind the VAO associated with it.
 	glBindVertexArray(VAO);

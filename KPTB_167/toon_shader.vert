@@ -8,11 +8,13 @@ uniform mat4 modelview;
 uniform mat4 model;
 
 out vec3 surfaceNormal;
+out vec3 baseNormal;
 out vec3 vertex;
 
 void main()
 {
     gl_Position = projection * modelview * vec4(position.x, position.y, position.z, 1.0f);
 	surfaceNormal = mat3(transpose(inverse(modelview))) * normal;
+	baseNormal = normal;
 	vertex = vec3(model * vec4(position, 1.0f));
 }

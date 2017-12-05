@@ -39,6 +39,7 @@ glm::vec3 Window::cam_up;
 // Scene Graph parameters
 glm::mat4 Window::C;
 MatrixTransform* world;
+
 Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
@@ -75,10 +76,10 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	playerModel = new Geode("res/objects/dragon.obj");
+	playerModel = new Geode("res/objects/wolf.obj");
 	playerMT->addChild(playerModel);
-
-	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)));
+	playerModel->setParentMT(playerMT);
+	playerModel->initSize(15.0f, false);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.

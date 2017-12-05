@@ -2,6 +2,7 @@
 #define _GEODE_H_
 
 #include "Node.h"
+#include "MatrixTransform.h"
 
 // Used for realistic lighting
 struct Material
@@ -30,6 +31,10 @@ public:
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 
+	MatrixTransform * parentMT;
+	glm::vec3 maxCoord;
+	glm::vec3 minCoord;
+
 	// These variables are needed for the shader program
 	GLuint VBO_v, VBO_n, VAO, EBO;
 	Material material;
@@ -38,6 +43,8 @@ public:
 	void draw(GLuint program, glm::mat4 C);
 	void update();
 	void parse(const char * filepath);
+	void initSize(float scale, bool centeredOnFloor);
+	void setParentMT(MatrixTransform * parent);
 };
 
 #endif

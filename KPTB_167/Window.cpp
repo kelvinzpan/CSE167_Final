@@ -3,7 +3,7 @@
 // NOTE: Model to world coordinates are: +X is LEFT, +Y is UP, +Z is IN
 
 // Window parameters
-const char* window_title = "GLFW Starter Project";
+const char* window_title = "Pest Control";
 int Window::width;
 int Window::height;
 glm::mat4 Window::P;
@@ -32,9 +32,9 @@ GLint toonShaderProgram;
 #define TOON_FRAGMENT_SHADER_PATH "toon_shader.frag"
 
 // Default camera parameters
-glm::vec3 cam_pos(0.0f, 0.0f, 20.0f);
-glm::vec3 cam_look_at(0.0f, 0.0f, 0.0f);
-glm::vec3 cam_up(0.0f, 1.0f, 0.0f);
+glm::vec3 Window::cam_pos;
+glm::vec3 Window::cam_look_at;
+glm::vec3 Window::cam_up;
 
 // Scene Graph parameters
 glm::mat4 Window::C;
@@ -45,6 +45,12 @@ Geode* playerModel;
 
 void Window::initialize_objects()
 {
+	// Set up camera
+	Window::cam_pos = glm::vec3(0.0f, 0.0f, -20.0f);
+	Window::cam_look_at = glm::vec3(0.0f, 0.0f, 0.0f);
+	Window::cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
+	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
@@ -71,6 +77,8 @@ void Window::initialize_scene_graph()
 	player->addChild(playerMT);
 	playerModel = new Geode("res/objects/dragon.obj");
 	playerMT->addChild(playerModel);
+
+	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, 0.0f)));
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -142,7 +150,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 	if (height > 0)
 	{
 		P = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
-		V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	}
 }
 
@@ -238,8 +246,8 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 			float rotAngle = velocity * 0.03f;
 
 			glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis);
-			cam_pos = glm::vec3(glm::vec4(cam_pos, 1.0f) * rotateMat);
-			V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+			Window::cam_pos = glm::vec3(glm::vec4(Window::cam_pos, 1.0f) * rotateMat);
+			V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 		}
 	}
 	if (Window::pressMouseRight)
@@ -274,28 +282,28 @@ void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
 		// Scrolling up
 		std::cout << "Scrolling up, zooming in." << std::endl;
-		glm::vec3 currDir = glm::normalize(cam_pos) * 5.0f;
-		if (cam_pos.x - currDir.x == 0.0f && cam_pos.y - currDir.y == 0.0f && cam_pos.z - currDir.z == 0.0f)
+		glm::vec3 currDir = glm::normalize(Window::cam_pos) * 5.0f;
+		if (Window::cam_pos.x - currDir.x == 0.0f && Window::cam_pos.y - currDir.y == 0.0f && Window::cam_pos.z - currDir.z == 0.0f)
 		{
 			return;
 		}
-		glm::vec3 new_cam_pos = cam_pos - currDir;
-		if (glm::dot(new_cam_pos, cam_pos) == 1)
+		glm::vec3 new_cam_pos = Window::cam_pos - currDir;
+		if (glm::dot(new_cam_pos, Window::cam_pos) == 1)
 		{
 			return;
 		}
-		cam_pos = new_cam_pos;
-		V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		Window::cam_pos = new_cam_pos;
+		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	}
 	else if (yoffset < 0)
 	{
 		// Scrolling down
 		std::cout << "Scrolling down, zooming out." << std::endl;
-		glm::vec3 currDir = glm::normalize(cam_pos) * 5.0f;
-		float newX = cam_pos.x + currDir.x;
-		float newY = cam_pos.y + currDir.y;
-		float newZ = cam_pos.z + currDir.z;
-		cam_pos = cam_pos + currDir;
-		V = glm::lookAt(cam_pos, cam_look_at, cam_up);
+		glm::vec3 currDir = glm::normalize(Window::cam_pos) * 5.0f;
+		float newX = Window::cam_pos.x + currDir.x;
+		float newY = Window::cam_pos.y + currDir.y;
+		float newZ = Window::cam_pos.z + currDir.z;
+		Window::cam_pos = Window::cam_pos + currDir;
+		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	}
 }

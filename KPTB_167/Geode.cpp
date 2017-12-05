@@ -10,10 +10,10 @@ Geode::Geode(const char * filepath)
 
 	// Construct default material
 	material = {
-		glm::vec3(0.3f, 0.3f, 0.3f), // color_diff
-		glm::vec3(0.1f, 0.1f, 0.1f), // color_spec
-		glm::vec3(0.60f, 0.784f, 1.0f), // color_ambi
-		.05f * 128.0f // spec_shine
+		glm::vec3(0.75164f, 0.60648f, 0.22648f), // color_diff
+		glm::vec3(0.628281f, 0.555802f, 0.366065f), // color_spec
+		glm::vec3(0.24725f, 0.1995f, 0.0745f), // color_ambi
+		0.4f // spec_shine
 	};
 
 	// Construct default dir light
@@ -76,6 +76,7 @@ void Geode::draw(GLuint program, glm::mat4 C)
 	// Pass in light values (directional light)
 	glUniform3f(glGetUniformLocation(program, "light.light_color"), light.light_color.x, light.light_color.y, light.light_color.z);
 	glUniform3f(glGetUniformLocation(program, "light.light_dir"), light.light_dir.x, light.light_dir.y, light.light_dir.z);
+	glUniform3f(glGetUniformLocation(program, "camPos"), Window::cam_pos.x, Window::cam_pos.y, Window::cam_pos.z);
 
 	// Now draw the OBJObject. We simply need to bind the VAO associated with it.
 	glBindVertexArray(VAO);

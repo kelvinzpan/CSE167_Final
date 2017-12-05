@@ -53,6 +53,10 @@ public:
 
 	static void initialize_scene_graph();
 	static glm::mat4 C;
+
+	static glm::vec3 cam_pos;
+	static glm::vec3 cam_look_at;
+	static glm::vec3 cam_up;
 };
 
 #endif

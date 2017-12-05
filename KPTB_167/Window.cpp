@@ -43,6 +43,8 @@ Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
 
+ParticleSpawn * testSpawner;
+
 void Window::initialize_objects()
 {
 	// Set up camera
@@ -64,6 +66,8 @@ void Window::initialize_objects()
 	glCullFace(GL_BACK);
 
 	initialize_scene_graph();
+
+	//testSpawner = new ParticleSpawn();
 }
 
 void Window::initialize_scene_graph()
@@ -156,7 +160,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
-	world->update();
+	//world->update();
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -166,8 +170,9 @@ void Window::display_callback(GLFWwindow* window)
 
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
-	world->draw(toonShaderProgram, Window::C);
+	//world->draw(toonShaderProgram, Window::C);
 
+	testSpawner->draw();
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);

@@ -23,6 +23,7 @@
 #include "Group.h"
 #include "Geode.h"
 #include "MatrixTransform.h"
+#include "ParticleSpawn.h"
 
 class Window
 {

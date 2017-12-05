@@ -19,11 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cube.h" />
     <ClInclude Include="Geode.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MatrixTransform.h" />
     <ClInclude Include="Node.h" />
+    <ClInclude Include="ParticleSpawn.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
@@ -33,6 +35,7 @@
     <ClCompile Include="Geode.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixTransform.cpp" />
+    <ClCompile Include="ParticleSpawn.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Window.cpp" />

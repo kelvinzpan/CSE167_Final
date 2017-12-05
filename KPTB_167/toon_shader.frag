@@ -39,7 +39,7 @@ void main()
 	c_spec = c_l * material.color_spec * pow( dot( R, e ), material.spec_shine);
 
 	c_ambi = c_l * material.color_ambi;
-
+		
 	vec3 matColor = c_diff + c_spec + c_ambi;
 	color = vec4(matColor.x, matColor.y, matColor.z, 1.0);
 }

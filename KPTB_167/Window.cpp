@@ -69,7 +69,7 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	playerModel = new Geode("res/obj/dragon.obj");
+	playerModel = new Geode("res/objects/dragon.obj");
 	playerMT->addChild(playerModel);
 }
 

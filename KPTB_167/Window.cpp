@@ -48,7 +48,7 @@ ParticleSpawn * testSpawner;
 void Window::initialize_objects()
 {
 	// Set up camera
-	Window::cam_pos = glm::vec3(0.0f, 0.0f, -20.0f);
+	Window::cam_pos = glm::vec3(0.0f, 0.0f, -40.0f);
 	Window::cam_look_at = glm::vec3(0.0f, 0.0f, 0.0f);
 	Window::cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
@@ -67,7 +67,7 @@ void Window::initialize_objects()
 
 	initialize_scene_graph();
 
-	//testSpawner = new ParticleSpawn();
+	testSpawner = new ParticleSpawn();
 }
 
 void Window::initialize_scene_graph()
@@ -79,8 +79,8 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	playerModel = new Geode("res/objects/dragon.obj");
-	playerMT->addChild(playerModel);
+	//playerModel = new Geode("res/objects/dragon.obj");
+	//playerMT->addChild(playerModel);
 
 	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)));
 }
@@ -168,11 +168,11 @@ void Window::display_callback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	testSpawner->draw();
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
-	//world->draw(toonShaderProgram, Window::C);
+	world->draw(toonShaderProgram, Window::C);
 
-	testSpawner->draw();
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);

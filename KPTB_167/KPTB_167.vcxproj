@@ -19,14 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ColorGen.hpp" />
     <ClInclude Include="Geode.h" />
     <ClInclude Include="Group.h" />
+    <ClInclude Include="HeightGen.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MatrixTransform.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Terrain.h" />
     <ClInclude Include="Window.h" />
   </ItemGroup>
   <ItemGroup>
@@ -35,6 +38,7 @@
     <ClCompile Include="MatrixTransform.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>

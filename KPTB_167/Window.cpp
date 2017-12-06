@@ -79,8 +79,8 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	//playerModel = new Geode("res/objects/dragon.obj");
-	//playerMT->addChild(playerModel);
+	playerModel = new Geode("res/objects/dragon.obj");
+	playerMT->addChild(playerModel);
 
 	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 15.0f, 0.0f)));
 }

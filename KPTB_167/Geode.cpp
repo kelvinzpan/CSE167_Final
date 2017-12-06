@@ -139,6 +139,32 @@ void Geode::parse(const char * filepath)
 				{
 					fscanf(objFile, "%f %f %f %f %f %f", &x, &y, &z, &r, &g, &b);
 					vertices.push_back(glm::vec3(x, y, z));
+
+					// Get min and max vertices
+					if (x > maxCoord.x)
+					{
+						maxCoord.x = x;
+					}
+					if (y > maxCoord.y)
+					{
+						maxCoord.y = y;
+					}
+					if (z > maxCoord.z)
+					{
+						maxCoord.z = z;
+					}
+					if (x < minCoord.x)
+					{
+						minCoord.x = x;
+					}
+					if (y < minCoord.y)
+					{
+						minCoord.y = y;
+					}
+					if (z < minCoord.z)
+					{
+						minCoord.z = z;
+					}
 				}
 				else if (c1 == 'v' && c2 == 'n') // Evaluate normal
 				{
@@ -150,4 +176,46 @@ void Geode::parse(const char * filepath)
 	}
 	std::cout << "\nParsing of complete.\n";
 	std::cout << "Vertices: " << vertices.size() << ", normals: " << normals.size() << ", faces: " << indices.size() / 3 << "\n\n";
+}
+
+// Call setParentMT before using
+// Should be called after initializating the Geode. Will center model to origin and scale to desired max length.
+// If centeredOnFloor is true, will center at origin ABOVE the XZ plane (Y >= 0)
+void Geode::initSize(float scale, bool centeredOnFloor)
+{
+	float xLen = this->maxCoord.x - this->minCoord.x;
+	float yLen = this->maxCoord.y - this->minCoord.y;
+	float zLen = this->maxCoord.z - this->minCoord.z;
+
+	// Scale so maximum dimension matches parameter scale
+	float scaleFactor = scale / std::max(std::max(xLen, yLen), zLen);
+	this->parentMT->scaleOnce(glm::scale(glm::mat4(1.0f), glm::vec3(scaleFactor, scaleFactor, scaleFactor)));
+
+	// Move to origin
+	float midX = (this->maxCoord.x + this->minCoord.x) / 2 * scaleFactor;
+	float midY = (this->maxCoord.y + this->minCoord.y) / 2 * scaleFactor;
+	float midZ = (this->maxCoord.z + this->minCoord.z) / 2 * scaleFactor;
+	this->parentMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(-midX, -midY, -midZ)));
+
+	// Update class variables to match
+	this->maxCoord *= glm::vec3(scaleFactor, scaleFactor, scaleFactor);
+	this->minCoord *= glm::vec3(scaleFactor, scaleFactor, scaleFactor);
+	this->maxCoord += glm::vec3(-midX, -midY, -midZ);
+	this->minCoord += glm::vec3(-midX, -midY, -midZ);
+
+	if (centeredOnFloor)
+	{
+		// Translate so feet are at origin (no negative Y)
+		this->parentMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, midY, 0.0f)));
+
+		// Update class variables to match
+		this->maxCoord += glm::vec3(0.0f, midY, 0.0f);
+		this->minCoord += glm::vec3(0.0f, midY, 0.0f);
+	}
+}
+
+// Sets pointer to the parent MT
+void Geode::setParentMT(MatrixTransform * parent)
+{
+	this->parentMT = parent;
 }

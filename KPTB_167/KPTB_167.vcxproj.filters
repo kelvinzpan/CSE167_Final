@@ -49,6 +49,7 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ColorGen.hpp">
+    <ClInclude Include="ParticleSpawn.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -72,6 +73,7 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Terrain.cpp">
+    <ClCompile Include="ParticleSpawn.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

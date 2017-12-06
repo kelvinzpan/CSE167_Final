@@ -44,10 +44,12 @@ Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
 
+ParticleSpawn * testSpawner;
+
 void Window::initialize_objects()
 {
 	// Set up camera
-	Window::cam_pos = glm::vec3(0.0f, 0.0f, -20.0f);
+	Window::cam_pos = glm::vec3(0.0f, 0.0f, -40.0f);
 	Window::cam_look_at = glm::vec3(0.0f, 0.0f, 0.0f);
 	Window::cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
 	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
@@ -65,6 +67,8 @@ void Window::initialize_objects()
 	glCullFace(GL_BACK);
 
 	initialize_scene_graph();
+
+	testSpawner = new ParticleSpawn();
 }
 
 void Window::initialize_scene_graph()
@@ -157,7 +161,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
-	world->update();
+	//world->update();
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -165,6 +169,7 @@ void Window::display_callback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	testSpawner->draw();
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);

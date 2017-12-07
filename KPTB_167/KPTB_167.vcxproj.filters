@@ -1,101 +1,41 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
-      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
-      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
-    </Filter>
-    <Filter Include="Header Files">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
-    </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
+    <ClCompile Include="Geode.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="MatrixTransform.cpp" />
+    <ClCompile Include="ParticleSpawn.cpp" />
+    <ClCompile Include="shader.cpp" />
+    <ClCompile Include="Skybox.cpp" />
+    <ClCompile Include="Terrain.cpp" />
+    <ClCompile Include="Window.cpp" />
+    <ClCompile Include="ColorGen.cpp" />
+    <ClCompile Include="HeightGen.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="main.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Skybox.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="stb_image.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Geode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Group.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MatrixTransform.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Node.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Terrain.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="HeightGen.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ColorGen.hpp">
-    <ClInclude Include="ParticleSpawn.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
+    <ClInclude Include="Geode.h" />
+    <ClInclude Include="Group.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="MatrixTransform.h" />
+    <ClInclude Include="Node.h" />
+    <ClInclude Include="ParticleSpawn.h" />
+    <ClInclude Include="shader.h" />
+    <ClInclude Include="Skybox.h" />
+    <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Terrain.h" />
+    <ClInclude Include="Window.h" />
+    <ClInclude Include="ColorGen.h" />
+    <ClInclude Include="HeightGen.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Skybox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Geode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="MatrixTransform.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Terrain.cpp">
-    <ClCompile Include="ParticleSpawn.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="shader.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="shader.vert">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="packages.config" />
-    <None Include="skybox_shader.vert">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="skybox_shader.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="toon_shader.frag">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="toon_shader.vert">
-      <Filter>Source Files</Filter>
-    </None>
+    <None Include="shader.frag" />
+    <None Include="shader.vert" />
+    <None Include="skybox_shader.frag" />
+    <None Include="skybox_shader.vert" />
+    <None Include="toon_shader.frag" />
+    <None Include="toon_shader.vert" />
+    <None Include="terrain_toon_shader.frag" />
+    <None Include="terrain_toon_shader.vert" />
   </ItemGroup>
 </Project>

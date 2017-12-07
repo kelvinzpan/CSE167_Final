@@ -24,6 +24,7 @@
 #include "Geode.h"
 #include "MatrixTransform.h"
 #include "ParticleSpawn.h"
+#include "Terrain.h"
 
 class Window
 {
@@ -58,6 +59,11 @@ public:
 	static glm::vec3 cam_pos;
 	static glm::vec3 cam_look_at;
 	static glm::vec3 cam_up;
+
+	static Terrain* terrain;
+	static GLint terrainShaderProgram;
+	static int terrainSize;
+	static int terrainSeed;
 };
 
 #endif

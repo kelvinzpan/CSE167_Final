@@ -1,45 +1,8 @@
-#ifndef _HEIGHTGEN_HPP_
-#define _HEIGHTGEN_HPP_
-
-#define GLFW_INCLUDE_GLEXT
-#ifdef __APPLE__
-#define GLFW_INCLUDE_GLCOREARB
-#else
-#include <GL/glew.h>
-#endif
-#include <GLFW/glfw3.h>
-#ifndef GLM_FORCE_RADIANS
-#define GLM_FORCE_RADIANS
-#endif
-
-#define _USE_MATH_DEFINES
-
-#include <glm/mat4x4.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include "math.h"
-
-class HeightGen
-{
-public:
-	int seed;
-	int octaves;
-	float amplitude;
-	float roughness;
-
-	HeightGen(int octaves, float amplitude, float roughness);
-	HeightGen(int seed, int octaves, float amplitude, float roughness);
-	~HeightGen() {};
-
-	float getFinalNoise(int x, int y);
-	float getInterpolatedNoise(float x, float y);
-	float interpolate(float a, float b, float blend);
-	float getSmoothNoise(int x, int y);
-	float getNoise(int x, int y);
-};
+#include "HeightGen.h"
 
 /*
- * Constructor with default seed
- */
+* Constructor with default seed
+*/
 HeightGen::HeightGen(int octaves, float amplitude, float roughness)
 {
 	this->seed = 420420;
@@ -49,8 +12,8 @@ HeightGen::HeightGen(int octaves, float amplitude, float roughness)
 }
 
 /*
- * Constructor with given seed
- */
+* Constructor with given seed
+*/
 HeightGen::HeightGen(int seed, int octaves, float amplitude, float roughness)
 {
 	this->seed = seed;
@@ -60,17 +23,17 @@ HeightGen::HeightGen(int seed, int octaves, float amplitude, float roughness)
 }
 
 /*
- * Uses getInterpolatedNoise() to get height values,
- * and layers additional heights for noise/roughness
- */
+* Uses getInterpolatedNoise() to get height values,
+* and layers additional heights for noise/roughness
+*/
 float HeightGen::getFinalNoise(int x, int y)
 {
 	float total = 0;
-	float d = (float) pow(2, octaves - 1);
+	float d = (float)pow(2, octaves - 1);
 
 	for (int i = 0; i < octaves; i++) {
-		float freq = (float) (pow(2, i) / d);
-		float amp = (float) pow(roughness, i) * amplitude;
+		float freq = (float)(pow(2, i) / d);
+		float amp = (float)pow(roughness, i) * amplitude;
 		total += getInterpolatedNoise(x * freq, y * freq) * amp;
 	}
 
@@ -78,13 +41,13 @@ float HeightGen::getFinalNoise(int x, int y)
 }
 
 /*
- * Smooths height from getSmoothNoise() by interpolating nearby coords
- */
+* Smooths height from getSmoothNoise() by interpolating nearby coords
+*/
 float HeightGen::getInterpolatedNoise(float x, float y)
 {
-	int intX = (int) x;
+	int intX = (int)x;
 	float fracX = x - intX;
-	int intY = (int) y;
+	int intY = (int)y;
 	float fracY = y - intY;
 
 	float v1 = HeightGen::getSmoothNoise(intX, intY);
@@ -97,8 +60,8 @@ float HeightGen::getInterpolatedNoise(float x, float y)
 }
 
 /*
- * Cosine interpolation for even smoother curves between points
- */
+* Cosine interpolation for even smoother curves between points
+*/
 float HeightGen::interpolate(float a, float b, float blend)
 {
 	double theta = blend * M_PI;
@@ -107,8 +70,8 @@ float HeightGen::interpolate(float a, float b, float blend)
 }
 
 /*
- * Smooths height from getNoise() by sampling nearby coords
- */
+* Smooths height from getNoise() by sampling nearby coords
+*/
 float HeightGen::getSmoothNoise(int x, int y)
 {
 	float corners = (getNoise(x - 1, y - 1) + getNoise(x + 1, y - 1) + getNoise(x - 1, y + 1)
@@ -118,16 +81,14 @@ float HeightGen::getSmoothNoise(int x, int y)
 	return corners + sides + center;
 }
 
-/* 
- * Gets the height based on seed and coordinate position
- */
+/*
+* Gets the height based on seed and coordinate position
+*/
 float HeightGen::getNoise(int x, int y)
 {
 	// Offset x and y by large constant to avoid similar values
 	std::srand(this->seed + x * 1234 + y * 4321);
 
 	// Return height between -1 and 1
-	return ( static_cast<float> (std::rand()) / static_cast <float> (RAND_MAX) ) * 2.0f - 1.0f;
+	return (static_cast<float> (std::rand()) / static_cast <float> (RAND_MAX)) * 2.0f - 1.0f;
 }
-
-#endif

@@ -44,8 +44,18 @@ Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
 
+// Procedural terrain parameters
+Terrain* Window::terrain;
+int Window::terrainSize = 50;
+int Window::terrainSeed = -1; // If -1, use default seed
+GLint Window::terrainShaderProgram;
+#define TERRAIN_VERTEX_SHADER_PATH "terrain_toon_shader.vert"
+#define TERRAIN_FRAGMENT_SHADER_PATH "terrain_toon_shader.frag"
+
+// Particle effect parameters
 ParticleSpawn * testSpawner;
 
+// Initialize all of our variables
 void Window::initialize_objects()
 {
 	// Set up camera
@@ -55,7 +65,6 @@ void Window::initialize_objects()
 	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 
 	// Load the shader program. Make sure you have the correct filepath up top
-	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
 
 	// Set up skybox
@@ -66,9 +75,17 @@ void Window::initialize_objects()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
+	// Set up scene graph
 	initialize_scene_graph();
 
-	testSpawner = new ParticleSpawn();
+	// Set up terrain
+	Window::terrain = new Terrain(Window::terrainSize, Window::terrainSeed);
+	terrainShaderProgram = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
+
+	// Set up particle effects
+	// testSpawner = new ParticleSpawn();
+
+	std::cout << "Completed initialization of window objects." << std::endl;
 }
 
 void Window::initialize_scene_graph()
@@ -161,7 +178,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
-	//world->update();
+	world->update();
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -169,10 +186,16 @@ void Window::display_callback(GLFWwindow* window)
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	testSpawner->draw();
-	// Use the shader of programID
+	// Draw terrain
+	glUseProgram(terrainShaderProgram);
+	Window::terrain->draw(terrainShaderProgram, Window::C);
+
+	// Draw objects in scene graph
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);
+
+	// Draw particles
+	//testSpawner->draw();
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);

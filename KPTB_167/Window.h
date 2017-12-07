@@ -49,6 +49,7 @@ public:
 	static void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static glm::vec3 trackballMap(glm::vec3 mouse);
+	static void renderScene();
 
 	static Skybox* skybox;
 	static GLint skyboxShaderProgram;

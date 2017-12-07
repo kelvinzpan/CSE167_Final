@@ -3,7 +3,6 @@
 
 ParticleSpawn::ParticleSpawn()
 {
-
 	beginTime = glfwGetTime();
 	static GLfloat * particle_pos = new GLfloat[maxParticles * 4];
 	static GLubyte * particle_color = new GLubyte[maxParticles * 4];
@@ -57,7 +56,7 @@ void ParticleSpawn::generateParticles(int newparticles)
 	{
 		int particleIndex = findUnusedParticle();
 		pContainer[particleIndex]->life = 3.0f; 
-		pContainer[particleIndex]->pos = glm::vec3(0, 0, -20.0f);
+		pContainer[particleIndex]->pos = glm::vec3(0, 0, 0.0f);
 
 		float spread = 1.5f;
 		glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
@@ -69,13 +68,12 @@ void ParticleSpawn::generateParticles(int newparticles)
 
 		pContainer[particleIndex]->speed = maindir + randomdir*spread;
 
-		// Very bad way to generate a random color
-		pContainer[particleIndex]->r = rand() % 256;
-		pContainer[particleIndex]->g = rand() % 256;
-		pContainer[particleIndex]->b = rand() % 256;
-		pContainer[particleIndex]->a = (rand() % 256) / 3;
-
-		pContainer[particleIndex]->size = (rand() % 1000) / 2000.0f + 0.1f;
+		pContainer[particleIndex]->r = 255;
+		pContainer[particleIndex]->g = 0;
+		pContainer[particleIndex]->b = 0;
+		pContainer[particleIndex]->a = 1;
+		//(rand() % 1000) / 2000.0f + 0.1f
+		pContainer[particleIndex]->size = 10;
 	}
 }
 
@@ -83,24 +81,20 @@ void ParticleSpawn::updateLiveParticles(int & particleCount, double delta)
 {
 	for (int i = 0; i < maxParticles; i++)
 	{
-		Particle * p = pContainer[i]; // shortcut
+		Particle * p = pContainer[i]; 
 
 		if (p->life > 0.0f) {
 
-			// Decrease life
 			p->life -= delta;
 			if (p->life > 0.0f) {
 
-				// Simulate simple physics : gravity only, no collisions
 				p->speed += glm::vec3(0.0f, -9.81f, 0.0f)  * (float)delta * 0.5f;
 				p->pos += p->speed * (float)delta;
 				p->camDistance = pow(glm::length(p->pos - Window::cam_pos), 2);
 		
-				// Fill the GPU buffer
 				particle_pos[4 * particleCount + 0] = p->pos.x;
 				particle_pos[4 * particleCount + 1] = p->pos.y;
 				particle_pos[4 * particleCount + 2] = p->pos.z;
-				//std::cout << p.pos.x << " " << p.pos.y << " " << p.pos.z << std::endl;
 				particle_pos[4 * particleCount + 3] = p->size;
 
 				particle_color[4 * particleCount + 0] = p->r;
@@ -110,7 +104,6 @@ void ParticleSpawn::updateLiveParticles(int & particleCount, double delta)
 
 			}
 			else {
-				// Particles that just died will be put at the end of the buffer in SortParticles();
 				p->camDistance = -1.0f;
 			}
 
@@ -164,7 +157,7 @@ void ParticleSpawn::draw(GLint shader)
 	glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
 	glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
 
-	glDrawArraysInstanced(GL_TRIANGLES, 0, 4, particleCount);
+	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particleCount);
 
 	//Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);

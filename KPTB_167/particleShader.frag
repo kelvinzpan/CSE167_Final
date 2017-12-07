@@ -13,5 +13,5 @@ void main(){
 	// Output color = color of the texture at the specified UV
 
 	//color = texture( myTextureSampler, UV ) * particlecolor;
-	color = particlecolor;
+	color = vec4(1.0f, 0.0f, 0.0f, 1.0f);
 }

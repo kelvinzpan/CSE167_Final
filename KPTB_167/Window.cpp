@@ -182,9 +182,24 @@ void Window::display_callback(GLFWwindow* window)
 {
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_CLIP_DISTANCE0);
+
+	waterTest->bindReflectionBuffer();
+	renderScene();
+	waterTest->unbindBuffer();
+
 	glUseProgram(waterShaderProgram);
 	waterTest->draw(waterShaderProgram);
 
+	renderScene();
+	// Gets events, including input such as keyboard and mouse or window resizing
+	glfwPollEvents();
+	// Swap buffers
+	glfwSwapBuffers(window);
+}
+
+void Window::renderScene()
+{
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);
@@ -195,11 +210,6 @@ void Window::display_callback(GLFWwindow* window)
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
-
-	// Gets events, including input such as keyboard and mouse or window resizing
-	glfwPollEvents();
-	// Swap buffers
-	glfwSwapBuffers(window);
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

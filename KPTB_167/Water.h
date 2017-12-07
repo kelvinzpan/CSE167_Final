@@ -26,6 +26,11 @@ class Water
 public:
 	Water();
 	~Water();
+	unsigned int loadTexture(char * path);
+	void initializeFrameBuffers();
+	void bindReflectionBuffer();
+	void bindRefractionBuffer();
+	void unbindBuffer();
 	void draw(GLuint shader);
 	void update();
 
@@ -52,8 +57,18 @@ public:
 		// Right face
 		{ 3, 2, 6, 6, 7, 3 }
 	};
+	int REFLECTION_WIDTH = 320;
+	int REFLECTION_HEIGHT = 180;
+
+	int REFRACTION_WIDTH = 1280;
+	int REFRACTION_HEIGHT = 720;
 
 	GLuint VAO, VBO, EBO;
 	GLuint shaderProgram;
+	GLuint reflectionFB, refractionFB;
+	GLuint reflectionTexture, refractionTexture, refractDepthTexture;
+	GLuint reflectDepthBuffer;
+	float waterHeight = 0;
+	unsigned int textureID;
 };
 #endif

@@ -58,6 +58,8 @@ public:
 	};
 
 	GLuint VAO, VBO_vert, VBO_pos, VBO_col;
+	GLuint skyVBO, skyVAO;
+	GLint shaderProgram;
 	const int maxParticles = 500;
 	int particleCount = 0;
 	int lastUsed = 0;
@@ -68,12 +70,13 @@ public:
 	GLubyte particle_color[4 * 500];
 
 	ParticleSpawn();
-	void draw();
+	void draw(GLint shader);
 	void initializeArrays();
 	void generateParticles(int newParticles);
 	void updateLiveParticles(int & particleCount, double delta);
 	int findUnusedParticle();
 	~ParticleSpawn();
+
 };
 
 #endif

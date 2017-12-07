@@ -3,16 +3,20 @@
 
 ParticleSpawn::ParticleSpawn()
 {
+
 	beginTime = glfwGetTime();
 	static GLfloat * particle_pos = new GLfloat[maxParticles * 4];
 	static GLubyte * particle_color = new GLubyte[maxParticles * 4];
 	pContainer = std::vector<Particle*>(maxParticles);
+	
 	initializeArrays();
+
 	for (int i = 0; i < maxParticles; i++)
 	{
 		Particle * p = new Particle();
 		pContainer[i] = p;
 	}
+
 }
 
 void ParticleSpawn::initializeArrays()
@@ -28,23 +32,23 @@ void ParticleSpawn::initializeArrays()
 	// Bind VBO for vertices
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_vert);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	//glEnableVertexAttribArray(0);
-	//glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_pos);
 	glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	//glEnableVertexAttribArray(1);
-	//glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-	// EBO for indices, so we know order to render
+	//// EBO for indices, so we know order to render
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_col);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-	//glEnableVertexAttribArray(2);
-	//glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (GLvoid*)0);
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (GLvoid*)0);
 
-	// Unbind current VBO and VAO
-	//glBindBuffer(GL_ARRAY_BUFFER, 0);
-	//glBindVertexArray(0);
+	//// Unbind current VBO and VAO
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 }
 
 void ParticleSpawn::generateParticles(int newparticles)
@@ -52,7 +56,7 @@ void ParticleSpawn::generateParticles(int newparticles)
 	for (int i = 0; i < newparticles; i++)
 	{
 		int particleIndex = findUnusedParticle();
-		pContainer[particleIndex]->life = 5.0f; // This particle will live 5 seconds.
+		pContainer[particleIndex]->life = 3.0f; 
 		pContainer[particleIndex]->pos = glm::vec3(0, 0, -20.0f);
 
 		float spread = 1.5f;
@@ -116,15 +120,16 @@ void ParticleSpawn::updateLiveParticles(int & particleCount, double delta)
 	}
 }
 
-void ParticleSpawn::draw()
+void ParticleSpawn::draw(GLint shader)
 {
+	shaderProgram = shader;
 	double currentTime = glfwGetTime();
 	double delta = currentTime - beginTime;
 	beginTime = currentTime;
 
-	int newparticles = (int)(delta*10000.0);
-	if (newparticles > (int)(0.016f*10000.0))
-		newparticles = (int)(0.016f*10000.0);
+	int newparticles = (int)(delta*500.0);
+	if (newparticles > (int)(0.016f*500.0))
+		newparticles = (int)(0.016f*500.0);
 
 	generateParticles(newparticles);
 
@@ -134,6 +139,18 @@ void ParticleSpawn::draw()
 	//sort them to optimize traversal and also to properly display by z-value
 	std::sort(pContainer.begin(),pContainer.end());
 
+
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &Window::P[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &Window::C[0][0]);
+
+	glUniform3f(glGetUniformLocation(shaderProgram, "CameraRight_worldspace"), Window::V[0][0], Window::V[1][0], Window::V[2][0]);
+	glUniform3f(glGetUniformLocation(shaderProgram, "CameraUp_worldspace"), Window::V[0][1], Window::V[1][1], Window::V[2][1]);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDepthMask(false);
+
+	glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_pos);
 	glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, particleCount * sizeof(GLfloat) * 4, particle_pos);
@@ -142,37 +159,22 @@ void ParticleSpawn::draw()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
 	glBufferSubData(GL_ARRAY_BUFFER, 0, particleCount * sizeof(GLubyte) * 4, particle_color);
 
-	glEnableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_vert);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
 
-	glEnableVertexAttribArray(1);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_pos);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-	glEnableVertexAttribArray(2);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_col);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (GLvoid*)0);
-
-	//glBindBuffer()
-	//glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
-	//glDrawElementsInstanced(GL_TRIANGLE_STRIP, 0, GL_FLOAT, 0, particleCount);
 	glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
 	glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
 	glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
 
-	glBindVertexArray(VAO);
 	glDrawArraysInstanced(GL_TRIANGLES, 0, 4, particleCount);
 
-	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
+	//Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);
-
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(2);
+	glDepthMask(true);
+	glDisable(GL_BLEND);
 
-	std::cout << particleCount << std::endl;
-
+	//std::cout << particleCount << std::endl;
 }
 
 int ParticleSpawn::findUnusedParticle()
@@ -198,4 +200,9 @@ ParticleSpawn::~ParticleSpawn()
 {
 	for (auto e : pContainer)
 		delete(e);
+
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO_vert);
+	glDeleteBuffers(1, &VBO_pos);
+	glDeleteBuffers(1, &VBO_col);
 }

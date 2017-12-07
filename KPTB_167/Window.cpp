@@ -31,6 +31,16 @@ GLint toonShaderProgram;
 #define TOON_VERTEX_SHADER_PATH "toon_shader.vert"
 #define TOON_FRAGMENT_SHADER_PATH "toon_shader.frag"
 
+// Water shader
+GLint waterShaderProgram;
+#define WATER_VERTEX_SHADER_PATH "waterShader.vert"
+#define WATER_FRAGMENT_SHADER_PATH "waterShader.frag"
+
+// Particle shader
+GLint particleShaderProgram;
+#define PARTICLE_VERTEX_SHADER_PATH "particleShader.vert"
+#define PARTICLE_FRAGMENT_SHADER_PATH "particleShader.frag"
+
 // Default camera parameters
 glm::vec3 Window::cam_pos;
 glm::vec3 Window::cam_look_at;
@@ -45,6 +55,7 @@ MatrixTransform* playerMT;
 Geode* playerModel;
 
 ParticleSpawn * testSpawner;
+Water * waterTest;
 
 void Window::initialize_objects()
 {
@@ -57,6 +68,8 @@ void Window::initialize_objects()
 	// Load the shader program. Make sure you have the correct filepath up top
 	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
+	waterShaderProgram = LoadShaders(WATER_VERTEX_SHADER_PATH, WATER_FRAGMENT_SHADER_PATH);
+	particleShaderProgram = LoadShaders(PARTICLE_VERTEX_SHADER_PATH, PARTICLE_FRAGMENT_SHADER_PATH);
 
 	// Set up skybox
 	Window::skybox = new Skybox();
@@ -68,6 +81,7 @@ void Window::initialize_objects()
 
 	initialize_scene_graph();
 
+	waterTest = new Water();
 	testSpawner = new ParticleSpawn();
 }
 
@@ -80,10 +94,10 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	playerModel = new Geode("res/objects/wolf.obj");
-	playerMT->addChild(playerModel);
-	playerModel->setParentMT(playerMT);
-	playerModel->initSize(15.0f, false);
+	//playerModel = new Geode("res/objects/wolf.obj");
+	//playerMT->addChild(playerModel);
+	//playerModel->setParentMT(playerMT);
+	//playerModel->initSize(15.0f, false);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -168,11 +182,15 @@ void Window::display_callback(GLFWwindow* window)
 {
 	// Clear the color and depth buffers
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glUseProgram(waterShaderProgram);
+	waterTest->draw(waterShaderProgram);
 
-	testSpawner->draw();
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);
+
+	glUseProgram(particleShaderProgram);
+	testSpawner->draw(particleShaderProgram);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);

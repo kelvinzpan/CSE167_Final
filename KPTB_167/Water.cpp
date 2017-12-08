@@ -23,6 +23,7 @@ Water::Water()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
+	initializeFrameBuffers();
 	textureID = loadTexture("res/test_texture.jpg");
 }
 
@@ -53,7 +54,7 @@ void Water::initializeFrameBuffers()
 	glGenFramebuffers(1, &refractionFB);
 	glBindFramebuffer(GL_FRAMEBUFFER, refractionFB);
 	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-
+		
 	//refraction texture
 	glGenTextures(1, &refractionTexture);
 	glBindTexture(GL_TEXTURE_2D, refractionTexture);
@@ -84,7 +85,7 @@ void Water::draw(GLuint shader)
 	glBindVertexArray(VAO);
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, textureID);
+	glBindTexture(GL_TEXTURE_2D, reflectionTexture);
 	glUniform1i(glGetUniformLocation(shaderProgram, "textureTest"), 0);
 	// Tell OpenGL to draw with triangles, using 36 indices, the type of the indices, and the offset to start from
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);

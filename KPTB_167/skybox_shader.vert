@@ -5,10 +5,16 @@ out vec3 TexCoords;
 
 uniform mat4 projection;
 uniform mat4 view;
+uniform vec4 clippingPlane;
+uniform int noclip;
 
 void main()
 {
     TexCoords = aPos;
+
+	vec4 worldPos = mat4(1.0f) * vec4(aPos, 1.0f);
+	gl_ClipDistance[0] = dot(worldPos, clippingPlane);
+
     vec4 pos = projection * view * vec4(aPos, 1.0);
     gl_Position = pos.xyww;
 }  

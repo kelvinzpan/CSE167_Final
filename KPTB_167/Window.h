@@ -50,6 +50,7 @@ public:
 	static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 	static glm::vec3 trackballMap(glm::vec3 mouse);
 	static void renderScene();
+	static void renderSceneClipping(int mode);
 
 	static Skybox* skybox;
 	static GLint skyboxShaderProgram;

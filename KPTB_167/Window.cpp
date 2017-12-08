@@ -94,10 +94,10 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	//playerModel = new Geode("res/objects/wolf.obj");
-	//playerMT->addChild(playerModel);
-	//playerModel->setParentMT(playerMT);
-	//playerModel->initSize(15.0f, false);
+	playerModel = new Geode("res/objects/cat.obj");
+	playerMT->addChild(playerModel);
+	playerModel->setParentMT(playerMT);
+	playerModel->initSize(15.0f, false);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -185,24 +185,43 @@ void Window::display_callback(GLFWwindow* window)
 	glEnable(GL_CLIP_DISTANCE0);
 
 	waterTest->bindReflectionBuffer();
-	renderScene();
+	renderSceneClipping(0);	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	waterTest->bindRefractionBuffer();
+	renderSceneClipping(1);	//0 is reflect, 1 is refract
+	waterTest->unbindBuffer();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glDisable(GL_CLIP_DISTANCE0);
 	glUseProgram(waterShaderProgram);
 	waterTest->draw(waterShaderProgram);
-
 	renderScene();
+
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
 	// Swap buffers
 	glfwSwapBuffers(window);
 }
 
-void Window::renderScene()
+void Window::renderSceneClipping(int mode)
 {
+	glm::vec4 plane = glm::vec4(0.0f, 0.0f, 0.0f, waterTest->waterHeight);
+	if (mode == 0) //reflect
+	{
+		plane.y = 1.0f;
+	}
+	else
+	{
+		plane.y = -1.0f;
+		plane.w = plane.w + 0.2;
+	}
+
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);
+	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w );
 
 	glUseProgram(particleShaderProgram);
 	testSpawner->draw(particleShaderProgram);
@@ -210,6 +229,23 @@ void Window::renderScene()
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
+	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+}
+
+void Window::renderScene()
+{
+	// Use the shader of programID
+	glUseProgram(toonShaderProgram);
+	world->draw(toonShaderProgram, Window::C);
+	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+
+	glUseProgram(particleShaderProgram);
+	testSpawner->draw(particleShaderProgram);
+
+	// Skybox (MUST DRAW LAST)
+	glUseProgram(Window::skyboxShaderProgram);
+	Window::skybox->draw(Window::skyboxShaderProgram);
+	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

@@ -17,7 +17,7 @@ uniform mat4 projection;
 
 void main()
 {
-	float particleSize = pos.w; // because we encoded it this way.
+	float particleSize = 100.0f; // because we encoded it this way.
 	vec3 particleCenter_wordspace = pos.xyz;
 	
 	//replaces the model portion of MVP
@@ -27,7 +27,7 @@ void main()
 		+ CameraUp_worldspace * squareVertices.y * particleSize;
 
 	// Output position of the vertex
-	gl_Position = view * projection * vec4(vertexPosition_worldspace, 1.0f);
+	gl_Position = projection * view * (squareVertices, 1.0f) * vec4(vertexPosition_worldspace, 1.0f);
 
 	// UV of the vertex. No special space for this one.
 	//UV = squareVertices.xy + vec2(0.5, 0.5);

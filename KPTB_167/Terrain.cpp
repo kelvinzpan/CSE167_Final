@@ -1,15 +1,18 @@
 #include "Terrain.h"
 #include "Window.h"
 
-int OCTAVES = 2;
-float AMPLITUDE = 30.0f;
-float ROUGHNESS = 1.0f;
+const double PERSIST = 0.5;
+const double FREQ = 0.1;
+const double AMP = 100.0;
+const int OCT = 5;
+
+const float SIZE = 1000.0f;
+
 std::vector<glm::vec3> COLORS = // Lowest to highest
 {
-	glm::vec3(0.169f, 0.114f, 0.055f), // dark brown
-	glm::vec3(0.133f, 0.545f, 0.133f), // forest green
-	glm::vec3(0.412f, 0.412f, 0.412f), // dim grey
-	glm::vec3(0.97f, 0.97f, 1.0f) // blu-ish white
+	glm::vec3(0.5f, 0.05f, 0.1f), // red
+	glm::vec3(0.412f, 0.412f, 0.412f) * 0.2f, // grey
+	glm::vec3(1.0f, 0.96f, 0.96f) // white
 };
 
 /*
@@ -18,15 +21,9 @@ std::vector<glm::vec3> COLORS = // Lowest to highest
 Terrain::Terrain(int gridSize, int seed)
 {
 	this->gridSize = gridSize;
-	if (seed == -1)
-	{
-		heightGen = new HeightGen(OCTAVES, AMPLITUDE, ROUGHNESS);
-	}
-	else
-	{
-		heightGen = new HeightGen(seed, OCTAVES, AMPLITUDE, ROUGHNESS);
-	}
-	colorGen = new ColorGen(COLORS, AMPLITUDE);
+	this->seed = (seed == -1) ? 420 : seed;
+
+	heightGen = new PerlinNoise(PERSIST, FREQ, AMP, OCT, this->seed);
 
 	// Default dir light taken from Geode.cpp
 	this->terrainLight = {
@@ -35,7 +32,6 @@ Terrain::Terrain(int gridSize, int seed)
 	};
 
 	this->heights = Terrain::generateHeights(this->gridSize, this->heightGen);
-	this->colors = this->colorGen->generateColors(this->heights, AMPLITUDE);
 
 	this->indices = Terrain::generateIndices(this->heights.size());
 	Terrain::generateBuffers();
@@ -48,7 +44,6 @@ Terrain::Terrain(int gridSize, int seed)
 Terrain::~Terrain()
 {
 	delete(heightGen);
-	delete(colorGen);
 
 	glDeleteVertexArrays(1, &VAO);
 	glDeleteBuffers(1, &VBO_v);
@@ -79,15 +74,14 @@ void Terrain::draw(GLuint program, glm::mat4 C)
 /*
  * Generate heights for every vertex of the terrain
  */
-std::vector<std::vector<float>> Terrain::generateHeights(int gridSize, HeightGen * heightGen)
+std::vector<std::vector<float>> Terrain::generateHeights(int gridSize, PerlinNoise * heightGen)
 {
 	std::vector<std::vector<float>> heights(gridSize + 1, std::vector<float>(gridSize + 1, 0.0f));
-
 	for (unsigned int z = 0; z < heights.size(); z++)
 	{
 		for (unsigned int x = 0; x < heights[z].size(); x++)
 		{
-			heights[z][x] = heightGen->getFinalNoise(x, z);
+			heights[z][x] = heightGen->GetHeight(x, z);
 		}
 	}
 	return heights;
@@ -103,16 +97,16 @@ std::vector<unsigned int> Terrain::generateIndices(int vertexCount) {
 	int pointer = 0;
 	for (int col = 0; col < vertexCount - 1; col++) {
 		for (int row = 0; row < vertexCount - 1; row++) {
-			int topLeft = (row * vertexCount) + col;
+			int topLeft = (col * vertexCount) + row;
 			int topRight = topLeft + 1;
-			int bottomLeft = ((row + 1) * vertexCount) + col;
+			int bottomLeft = ((col + 1) * vertexCount) + row;
 			int bottomRight = bottomLeft + 1;
 			newIndices[pointer++] = topLeft;
 			newIndices[pointer++] = bottomLeft;
-			newIndices[pointer++] = bottomRight;
-			newIndices[pointer++] = topLeft;
-			newIndices[pointer++] = bottomRight;
 			newIndices[pointer++] = topRight;
+			newIndices[pointer++] = topRight;
+			newIndices[pointer++] = bottomLeft;
+			newIndices[pointer++] = bottomRight;
 		}
 	}
 	return newIndices;
@@ -121,7 +115,7 @@ std::vector<unsigned int> Terrain::generateIndices(int vertexCount) {
 /*
  * Calculate a normal given a height
  */
-glm::vec3 Terrain::calculateNormal(int x, int z, std::vector<std::vector<float>> heights)
+glm::vec3 Terrain::calculateNormal(int x, int z, std::vector<std::vector<float>> &heights)
 {
 	float heightL = getHeight(x - 1, z, heights);
 	float heightR = getHeight(x + 1, z, heights);
@@ -134,7 +128,7 @@ glm::vec3 Terrain::calculateNormal(int x, int z, std::vector<std::vector<float>>
 /*
  * Get the height from heights
  */
-float Terrain::getHeight(unsigned int x, unsigned int z, std::vector<std::vector<float>> heights)
+float Terrain::getHeight(unsigned int x, unsigned int z, std::vector<std::vector<float>> &heights)
 {
 	x = x < 0 ? 0 : x;
 	z = z < 0 ? 0 : z;
@@ -144,18 +138,40 @@ float Terrain::getHeight(unsigned int x, unsigned int z, std::vector<std::vector
 }
 
 /*
- * Generate buffers for vertices, normals, and textures
+* Get the color from given height
+*/
+glm::vec3 calculateColor(float height, float amplitude, std::vector<glm::vec3> &colors)
+{
+	float part = 1.0f / (colors.size() - 1);
+	float value = (height + amplitude) / (amplitude * 2);
+	//value = glm::clamp((value - amplitude / 2.0f) * (1.0f / amplitude), 0.0f, 0.9999f);
+	int firstBiome = (int)std::floor(value / part);
+	float blend = (value - (firstBiome * part)) / part;
+
+	glm::vec3 c1 = colors[firstBiome];
+	glm::vec3 c2 = colors[firstBiome + 1];
+	float c1Weight = 1.0f - blend;
+	float r = (c1Weight * c1.x) + (blend * c2.x);
+	float g = (c1Weight * c1.y) + (blend * c2.y);
+	float b = (c1Weight * c1.z) + (blend * c2.z);
+	return glm::vec3(r, g, b);
+}
+
+/*
+ * Generate buffers for vertices, normals, and textures 
  */
 void Terrain::generateBuffers()
 {
 	for (unsigned int z = 0; z < this->heights.size(); z++) {
 		for (unsigned int x = 0; x < this->heights[z].size(); x++) {
-			this->vertices.push_back(glm::vec3(x, this->heights[z][x], z));
+			this->vertices.push_back(glm::vec3( (float) x / (this->gridSize - 1) * SIZE - SIZE / 2.0f, 
+											    this->heights[z][x],
+												(float) z / (this->gridSize - 1) * SIZE - SIZE / 2.0f) );
 			//std::cout << "(" << vertices[vertices.size() - 1].x << ", " << vertices[vertices.size() - 1].y << ", " << vertices[vertices.size() - 1].z << ")" << std::endl;
-			this->textures.push_back(this->colors[z][x]);
-			//std::cout << "(" << textures[textures.size() - 1].x << ", " << textures[textures.size() - 1].y << ", " << textures[textures.size() - 1].z << ")" << std::endl;
 			this->normals.push_back(calculateNormal(x, z, this->heights));
 			//std::cout << "(" << normals[normals.size() - 1].x << ", " << normals[normals.size() - 1].y << ", " << normals[normals.size() - 1].z << ")" << std::endl;
+			this->textures.push_back(calculateColor(this->heights[z][x], AMP, COLORS));
+			//std::cout << "(" << textures[textures.size() - 1].x << ", " << textures[textures.size() - 1].y << ", " << textures[textures.size() - 1].z << ")" << std::endl;
 		}
 	}
 }

@@ -46,11 +46,14 @@ Geode* playerModel;
 
 // Procedural terrain parameters
 Terrain* Window::terrain;
-int Window::terrainSize = 50;
+int Window::terrainSize = 100; // How detailed
 int Window::terrainSeed = -1; // If -1, use default seed
 GLint Window::terrainShaderProgram;
 #define TERRAIN_VERTEX_SHADER_PATH "terrain_toon_shader.vert"
 #define TERRAIN_FRAGMENT_SHADER_PATH "terrain_toon_shader.frag"
+
+Terrain* Window::randTerrain;
+int Window::randSeed;
 
 // Particle effect parameters
 ParticleSpawn * testSpawner;
@@ -80,6 +83,9 @@ void Window::initialize_objects()
 
 	// Set up terrain
 	Window::terrain = new Terrain(Window::terrainSize, Window::terrainSeed);
+	srand(time(0));
+	Window::randSeed = rand();
+	Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
 	terrainShaderProgram = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
 
 	// Set up particle effects
@@ -217,6 +223,13 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		{
 			// Close the window. This causes the program to also terminate.
 			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+		// T/t, randomize terrain
+		if (key == GLFW_KEY_T)
+		{
+			Window::randSeed = rand();
+			Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
+			Window::terrain = randTerrain;
 		}
 	}
 }

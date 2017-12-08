@@ -16,14 +16,14 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
-#include "HeightGen.h"
-#include "ColorGen.h"
+#include "PerlinNoise.hpp"
 #include "Geode.h"
 
 class Terrain
 {
 public:
 	int gridSize;
+	int seed;
 
 	std::vector<unsigned int> indices;
 	std::vector<glm::vec3> vertices;
@@ -33,10 +33,10 @@ public:
 	GLuint VAO, VBO_v, VBO_n, VBO_c, EBO;
 	Light terrainLight;
 
-	HeightGen * heightGen;
+	// HeightGen * heightGen;
+	PerlinNoise * heightGen;
 	std::vector<std::vector<float>> heights;
 
-	ColorGen * colorGen;
 	std::vector<std::vector<glm::vec3>> colors;
 
 	Terrain();
@@ -45,10 +45,10 @@ public:
 
 	void draw(GLuint program, glm::mat4 C);
 	
-	std::vector<std::vector<float>> generateHeights(int gridSize, HeightGen * heightGen);
+	std::vector<std::vector<float>> generateHeights(int gridSize, PerlinNoise * heightGen);
 	std::vector<unsigned int> generateIndices(int vertexCount);
-	glm::vec3 calculateNormal(int x, int z, std::vector<std::vector<float>> heights);
-	float getHeight(unsigned int x, unsigned int z, std::vector<std::vector<float>> heights);
+	glm::vec3 calculateNormal(int x, int z, std::vector<std::vector<float>> &heights);
+	float getHeight(unsigned int x, unsigned int z, std::vector<std::vector<float>> &heights);
 	void generateBuffers();
 	void loadBuffers();
 };

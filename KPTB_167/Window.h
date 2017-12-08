@@ -16,6 +16,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <iostream>
+#include <time.h>
 
 #include "shader.h"
 #include "Skybox.h"
@@ -61,6 +62,8 @@ public:
 	static glm::vec3 cam_up;
 
 	static Terrain* terrain;
+	static Terrain* randTerrain;
+	static int randSeed;
 	static GLint terrainShaderProgram;
 	static int terrainSize;
 	static int terrainSeed;

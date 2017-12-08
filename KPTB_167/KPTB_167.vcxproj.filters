@@ -9,8 +9,6 @@
     <ClCompile Include="Skybox.cpp" />
     <ClCompile Include="Terrain.cpp" />
     <ClCompile Include="Window.cpp" />
-    <ClCompile Include="ColorGen.cpp" />
-    <ClCompile Include="HeightGen.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Geode.h" />
@@ -24,8 +22,7 @@
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Window.h" />
-    <ClInclude Include="ColorGen.h" />
-    <ClInclude Include="HeightGen.h" />
+    <ClInclude Include="PerlinNoise.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

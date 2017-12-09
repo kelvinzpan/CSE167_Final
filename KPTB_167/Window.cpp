@@ -242,11 +242,6 @@ void Window::display_callback(GLFWwindow* window)
 	glfwSwapBuffers(window);
 }
 
-	// Draw terrain
-	glUseProgram(terrainShaderProgram);
-	Window::terrain->draw(terrainShaderProgram, Window::C);
-
-	// Draw objects in scene graph
 void Window::invertPitch()
 {
 	float pitch = glm::asin(cam_look_at.y);
@@ -257,6 +252,7 @@ void Window::invertPitch()
 	cam_look_at.y = glm::sin(invertPitch);
 	cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);
 }
+
 void Window::renderSceneClipping(int mode)
 {
 	glm::vec4 plane = glm::vec4(0.0f, 0.0f, 0.0f, waterTest->waterHeight);
@@ -268,6 +264,9 @@ void Window::renderSceneClipping(int mode)
 	{
 		plane.y = -1.0f;
 	}
+	// Draw terrain
+	glUseProgram(terrainShaderProgram);
+	Window::terrain->draw(terrainShaderProgram, Window::C);
 
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
@@ -285,6 +284,9 @@ void Window::renderSceneClipping(int mode)
 
 void Window::renderScene()
 {
+	// Draw terrain
+	glUseProgram(terrainShaderProgram);
+	Window::terrain->draw(terrainShaderProgram, Window::C);
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);

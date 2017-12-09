@@ -98,6 +98,9 @@ void Window::initialize_scene_graph()
 	playerMT->addChild(playerModel);
 	playerModel->setParentMT(playerMT);
 	playerModel->initSize(15.0f, false);
+
+	glm::mat4 test = glm::translate(glm::mat4(1.0f), glm::vec3(4.0f, 4.0f, 0.0f));
+	playerMT->translateOnce(test);
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -185,9 +188,15 @@ void Window::display_callback(GLFWwindow* window)
 	glEnable(GL_CLIP_DISTANCE0);
 
 	waterTest->bindReflectionBuffer();
+	float distance = 2 * (cam_pos.y - waterTest->waterHeight);
+	//tutorial uses y, but z looks better/accurate
+	cam_pos.y -= distance;
+	invertPitch();
 	renderSceneClipping(0);	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
+	cam_pos.y += distance;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	invertPitch();
 
 	waterTest->bindRefractionBuffer();
 	renderSceneClipping(1);	//0 is reflect, 1 is refract
@@ -195,8 +204,12 @@ void Window::display_callback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	glDisable(GL_CLIP_DISTANCE0);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glUseProgram(waterShaderProgram);
 	waterTest->draw(waterShaderProgram);
+	glDisable(GL_BLEND);
+
 	renderScene();
 
 	// Gets events, including input such as keyboard and mouse or window resizing
@@ -205,6 +218,16 @@ void Window::display_callback(GLFWwindow* window)
 	glfwSwapBuffers(window);
 }
 
+void Window::invertPitch()
+{
+	float pitch = glm::asin(cam_look_at.y);
+	float yaw = glm::acos(cam_look_at.x / glm::cos(pitch));
+	float invertPitch = -pitch;
+
+	cam_look_at.x = glm::cos(invertPitch)*glm::cos(yaw);
+	cam_look_at.y = glm::sin(invertPitch);
+	cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);
+}
 void Window::renderSceneClipping(int mode)
 {
 	glm::vec4 plane = glm::vec4(0.0f, 0.0f, 0.0f, waterTest->waterHeight);
@@ -215,7 +238,6 @@ void Window::renderSceneClipping(int mode)
 	else
 	{
 		plane.y = -1.0f;
-		plane.w = plane.w + 0.2;
 	}
 
 	// Use the shader of programID

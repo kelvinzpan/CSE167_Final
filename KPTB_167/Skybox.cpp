@@ -9,14 +9,24 @@ Skybox::Skybox()
 	toWorld = glm::mat4(1.0f);
 
 	// Setup faces
+	//std::vector<std::string> faces
+	//{
+	//	"res/skybox/BluePinkNebular_right.jpg",
+	//	"res/skybox/BluePinkNebular_left.jpg",
+	//	"res/skybox/BluePinkNebular_top.jpg",
+	//	"res/skybox/BluePinkNebular_bottom.jpg",
+	//	"res/skybox/BluePinkNebular_back.jpg",
+	//	"res/skybox/BluePinkNebular_front.jpg"
+	//};
+
 	std::vector<std::string> faces
 	{
-		"res/skybox/BluePinkNebular_right.jpg",
-		"res/skybox/BluePinkNebular_left.jpg",
-		"res/skybox/BluePinkNebular_top.jpg",
-		"res/skybox/BluePinkNebular_bottom.jpg",
-		"res/skybox/BluePinkNebular_back.jpg",
-		"res/skybox/BluePinkNebular_front.jpg"
+		"res/skybox/blood-stain-gorge_rt.jpg",
+		"res/skybox/blood-stain-gorge_lf.jpg",
+		"res/skybox/blood-stain-gorge_up.jpg",
+		"res/skybox/blood-stain-gorge_dn.jpg",
+		"res/skybox/blood-stain-gorge_bk.jpg",
+		"res/skybox/blood-stain-gorge_ft.jpg"
 	};
 
 	glGenVertexArrays(1, &skyVAO);

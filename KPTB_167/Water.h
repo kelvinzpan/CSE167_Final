@@ -57,6 +57,7 @@ public:
 		// Right face
 		{ 3, 2, 6, 6, 7, 3 }
 	};
+
 	int REFLECTION_WIDTH = 320;
 	int REFLECTION_HEIGHT = 180;
 
@@ -66,9 +67,13 @@ public:
 	GLuint VAO, VBO, EBO;
 	GLuint shaderProgram;
 	GLuint reflectionFB, refractionFB;
-	GLuint reflectionTexture, refractionTexture, refractDepthTexture;
+	GLuint reflectionTexture, refractionTexture, refractDepthTexture, dudvMap;
 	GLuint reflectDepthBuffer;
-	float waterHeight = 0;
+	int waterHeight = 0;
+	float waveSpeed = 0.03f;
+	float moveFactor = 0.0f;
 	unsigned int textureID;
+
+	double beginTime, currTime, delta;
 };
 #endif

@@ -51,6 +51,7 @@ public:
 	static glm::vec3 trackballMap(glm::vec3 mouse);
 	static void renderScene();
 	static void renderSceneClipping(int mode);
+	static void invertPitch();
 
 	static Skybox* skybox;
 	static GLint skyboxShaderProgram;

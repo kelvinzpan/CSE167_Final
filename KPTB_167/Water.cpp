@@ -2,6 +2,7 @@
 #include "stb_image.h"
 Water::Water()
 {
+	beginTime = glfwGetTime();
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
@@ -25,6 +26,7 @@ Water::Water()
 
 	initializeFrameBuffers();
 	textureID = loadTexture("res/test_texture.jpg");
+	dudvMap = loadTexture("res/textures/waterDUDV.png");
 }
 
 void Water::initializeFrameBuffers()
@@ -38,17 +40,9 @@ void Water::initializeFrameBuffers()
 	glGenTextures(1, &reflectionTexture);
 	glBindTexture(GL_TEXTURE_2D, reflectionTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0, reflectionTexture, 0);
-
-	//depth render buffer
-	glGenRenderbuffers(1, &reflectDepthBuffer);
-	glBindRenderbuffer(GL_RENDERBUFFER, reflectDepthBuffer);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, REFLECTION_WIDTH, REFLECTION_HEIGHT);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, reflectDepthBuffer);
-	//unbind idk if necessary
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionTexture, 0);
 
 	//refraction fbo
 	glGenFramebuffers(1, &refractionFB);
@@ -59,11 +53,17 @@ void Water::initializeFrameBuffers()
 	glGenTextures(1, &refractionTexture);
 	glBindTexture(GL_TEXTURE_2D, refractionTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, refractionTexture, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionTexture, 0);
 
-	//depth buffer texture for refraction
+	//depth render buffer
+	glGenRenderbuffers(1, &reflectDepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, reflectDepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, REFLECTION_WIDTH, REFLECTION_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, reflectDepthBuffer);
+
+	////depth buffer texture for refraction
 	glGenTextures(1, &refractDepthTexture);
 	glBindTexture(GL_TEXTURE_2D, refractDepthTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
@@ -72,7 +72,7 @@ void Water::initializeFrameBuffers()
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, refractDepthTexture, 0);
 
 	//unbind, this will go back to normal frame buffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Water::draw(GLuint shader)
@@ -81,20 +81,40 @@ void Water::draw(GLuint shader)
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &Window::V[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &Window::C[0][0]);
+	glUniform3f(glGetUniformLocation(shaderProgram, "cameraPos"), Window::cam_pos.x, Window::cam_pos.y, Window::cam_pos.z);
 	// Now draw the cube. We simply need to bind the VAO associated with it.
 	glBindVertexArray(VAO);
 
+	currTime = glfwGetTime();
+	delta = currTime - beginTime;
+	beginTime = currTime;
+	moveFactor += waveSpeed * delta;
+	moveFactor = fmod(moveFactor, 1.0f);
+	glUniform1f(glGetUniformLocation(shaderProgram, "moveFactor"), moveFactor);
+	//glActiveTexture(GL_TEXTURE0);
+	//glBindTexture(GL_TEXTURE_2D, refractionTexture);
+	//glUniform1i(glGetUniformLocation(shaderProgram, "textureTest"), 0);
+
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, reflectionTexture);
-	glUniform1i(glGetUniformLocation(shaderProgram, "textureTest"), 0);
-	// Tell OpenGL to draw with triangles, using 36 indices, the type of the indices, and the offset to start from
+	glUniform1i(glGetUniformLocation(shaderProgram, "reflection"), 0);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, refractionTexture);
+	glUniform1i(glGetUniformLocation(shaderProgram, "refraction"), 1);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, dudvMap);
+	glUniform1i(glGetUniformLocation(shaderProgram, "dudvMap"), 2);
+
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-	// Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
+	
 	glBindVertexArray(0);
 }
 
 void Water::bindReflectionBuffer()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);//To make sure the texture isn't bound
 	glBindFramebuffer(GL_FRAMEBUFFER, reflectionFB);
 	glViewport(0, 0, REFRACTION_WIDTH, REFRACTION_HEIGHT);
@@ -102,6 +122,7 @@ void Water::bindReflectionBuffer()
 
 void Water::bindRefractionBuffer()
 {
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glBindTexture(GL_TEXTURE_2D, 0);//To make sure the texture isn't bound
 	glBindFramebuffer(GL_FRAMEBUFFER, refractionFB);
 	glViewport(0, 0, REFRACTION_WIDTH, REFRACTION_HEIGHT);

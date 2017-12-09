@@ -19,14 +19,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ColorGen.hpp" />
     <ClInclude Include="Geode.h" />
     <ClInclude Include="Group.h" />
-    <ClInclude Include="HeightGen.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MatrixTransform.h" />
     <ClInclude Include="Node.h" />
     <ClInclude Include="ParticleSpawn.h" />
+    <ClInclude Include="PerlinNoise.hpp" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="Skybox.h" />
     <ClInclude Include="stb_image.h" />
@@ -53,6 +52,8 @@
     <None Include="shader.vert" />
     <None Include="skybox_shader.frag" />
     <None Include="skybox_shader.vert" />
+    <None Include="terrain_toon_shader.frag" />
+    <None Include="terrain_toon_shader.vert" />
     <None Include="toon_shader.frag" />
     <None Include="toon_shader.vert" />
     <None Include="waterShader.frag" />

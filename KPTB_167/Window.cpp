@@ -54,9 +54,22 @@ Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
 
+// Procedural terrain parameters
+Terrain* Window::terrain;
+int Window::terrainSize = 100; // How detailed
+int Window::terrainSeed = -1; // If -1, use default seed
+GLint Window::terrainShaderProgram;
+#define TERRAIN_VERTEX_SHADER_PATH "terrain_toon_shader.vert"
+#define TERRAIN_FRAGMENT_SHADER_PATH "terrain_toon_shader.frag"
+
+Terrain* Window::randTerrain;
+int Window::randSeed;
+
+// Particle effect parameters
 ParticleSpawn * testSpawner;
 Water * waterTest;
 
+// Initialize all of our variables
 void Window::initialize_objects()
 {
 	// Set up camera
@@ -66,7 +79,6 @@ void Window::initialize_objects()
 	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 
 	// Load the shader program. Make sure you have the correct filepath up top
-	shaderProgram = LoadShaders(VERTEX_SHADER_PATH, FRAGMENT_SHADER_PATH);
 	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
 	waterShaderProgram = LoadShaders(WATER_VERTEX_SHADER_PATH, WATER_FRAGMENT_SHADER_PATH);
 	particleShaderProgram = LoadShaders(PARTICLE_VERTEX_SHADER_PATH, PARTICLE_FRAGMENT_SHADER_PATH);
@@ -79,8 +91,20 @@ void Window::initialize_objects()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
+	// Set up scene graph
 	initialize_scene_graph();
 
+	// Set up terrain
+	Window::terrain = new Terrain(Window::terrainSize, Window::terrainSeed);
+	srand(time(0));
+	Window::randSeed = rand();
+	Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
+	terrainShaderProgram = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
+
+	// Set up particle effects
+	// testSpawner = new ParticleSpawn();
+
+	std::cout << "Completed initialization of window objects." << std::endl;
 	waterTest = new Water();
 	testSpawner = new ParticleSpawn();
 }
@@ -178,7 +202,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 void Window::idle_callback()
 {
-	//world->update();
+	world->update();
 }
 
 void Window::display_callback(GLFWwindow* window)
@@ -218,6 +242,11 @@ void Window::display_callback(GLFWwindow* window)
 	glfwSwapBuffers(window);
 }
 
+	// Draw terrain
+	glUseProgram(terrainShaderProgram);
+	Window::terrain->draw(terrainShaderProgram, Window::C);
+
+	// Draw objects in scene graph
 void Window::invertPitch()
 {
 	float pitch = glm::asin(cam_look_at.y);
@@ -280,6 +309,13 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		{
 			// Close the window. This causes the program to also terminate.
 			glfwSetWindowShouldClose(window, GL_TRUE);
+		}
+		// T/t, randomize terrain
+		if (key == GLFW_KEY_T)
+		{
+			Window::randSeed = rand();
+			Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
+			Window::terrain = randTerrain;
 		}
 	}
 }

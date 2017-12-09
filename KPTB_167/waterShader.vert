@@ -1,6 +1,6 @@
 #version 330 core
 
-in vec2 position;
+layout (location = 0) in vec3 position;
 
 out vec4 clipSpace;
 out vec2 textureCoords;
@@ -18,6 +18,6 @@ void main(void) {
 	vec4 worldPos = model * vec4(position.x, 0.0, position.y, 1.0);
 	clipSpace = projection * view * worldPos;
 	gl_Position = clipSpace;
-	textureCoords = vec2(position.x/2.0 + 0.5, position.y/2.0 + 0.5) * tiling;
+	textureCoords = vec2(position.x/40 + 0.5, position.y/40 + 0.5) * tiling;
 	toCamera = cameraPos - worldPos.xyz;
 }

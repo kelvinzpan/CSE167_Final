@@ -25,7 +25,7 @@ Water::Water()
 	glBindVertexArray(0);
 
 	initializeFrameBuffers();
-	textureID = loadTexture("res/test_texture.jpg");
+	textureID = loadTexture("res/textures/test_texture.jpg");
 	dudvMap = loadTexture("res/textures/waterDUDV.png");
 }
 
@@ -75,12 +75,13 @@ void Water::initializeFrameBuffers()
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Water::draw(GLuint shader)
+void Water::draw(GLuint shader, glm::mat4 c)
 {
+	toWorld = c;
 	shaderProgram = shader;
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &Window::V[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &Window::C[0][0]);
+	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &toWorld[0][0]);
 	glUniform3f(glGetUniformLocation(shaderProgram, "cameraPos"), Window::cam_pos.x, Window::cam_pos.y, Window::cam_pos.z);
 	// Now draw the cube. We simply need to bind the VAO associated with it.
 	glBindVertexArray(VAO);

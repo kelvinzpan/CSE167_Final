@@ -207,7 +207,7 @@ void Window::display_callback(GLFWwindow* window)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glUseProgram(waterShaderProgram);
-	waterTest->draw(waterShaderProgram);
+	waterTest->draw(waterShaderProgram, Window::C);
 	glDisable(GL_BLEND);
 
 	renderScene();
@@ -246,7 +246,7 @@ void Window::renderSceneClipping(int mode)
 	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w );
 
 	glUseProgram(particleShaderProgram);
-	testSpawner->draw(particleShaderProgram);
+	testSpawner->draw(particleShaderProgram, Window::C);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
@@ -262,7 +262,7 @@ void Window::renderScene()
 	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
 
 	glUseProgram(particleShaderProgram);
-	testSpawner->draw(particleShaderProgram);
+	testSpawner->draw(particleShaderProgram, Window::C);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);

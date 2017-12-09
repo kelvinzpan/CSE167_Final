@@ -1,14 +1,36 @@
 #include "ParticleSpawn.h"
-
+#include "stb_image.h"
 
 ParticleSpawn::ParticleSpawn()
 {
 	beginTime = glfwGetTime();
-	static GLfloat * particle_pos = new GLfloat[maxParticles * 4];
-	static GLubyte * particle_color = new GLubyte[maxParticles * 4];
 	pContainer = std::vector<Particle*>(maxParticles);
-	
-	initializeArrays();
+
+	GLfloat vertices[] = {
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 0.0f
+	};
+
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+
+	glBindVertexArray(VAO);
+
+	//Fill mess buffer
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	//Set mesh attrib
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
+	glBindVertexArray(0);
+
+	textureID = loadTexture("res/textures/fire_texture.jpg");
 
 	for (int i = 0; i < maxParticles; i++)
 	{
@@ -18,48 +40,16 @@ ParticleSpawn::ParticleSpawn()
 
 }
 
-void ParticleSpawn::initializeArrays()
-{
-	glGenVertexArrays(1, &VAO);
-	// Bind VAO to start binding rest of the buffers
-	glBindVertexArray(VAO);
-
-	glGenBuffers(1, &VBO_vert);
-	glGenBuffers(1, &VBO_pos);
-	glGenBuffers(1, &VBO_col);
-
-	// Bind VBO for vertices
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_vert);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_pos);
-	glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)0);
-
-	//// EBO for indices, so we know order to render
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_col);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 4, GL_UNSIGNED_BYTE, GL_TRUE, 0, (GLvoid*)0);
-
-	//// Unbind current VBO and VAO
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
-}
-
 void ParticleSpawn::generateParticles(int newparticles)
 {
 	for (int i = 0; i < newparticles; i++)
 	{
 		int particleIndex = findUnusedParticle();
-		pContainer[particleIndex]->life = 3.0f; 
+		pContainer[particleIndex]->life = 2.0f; 
 		pContainer[particleIndex]->pos = glm::vec3(0, 0, 0.0f);
 
 		float spread = 1.5f;
-		glm::vec3 maindir = glm::vec3(0.0f, 10.0f, 0.0f);
+		glm::vec3 maindir = glm::vec3(0.0f, 3.0f, 0.0f);
 		glm::vec3 randomdir = glm::vec3(
 			(rand() % 2000 - 1000.0f) / 1000.0f,
 			(rand() % 2000 - 1000.0f) / 1000.0f,
@@ -72,102 +62,91 @@ void ParticleSpawn::generateParticles(int newparticles)
 		pContainer[particleIndex]->g = 0;
 		pContainer[particleIndex]->b = 0;
 		pContainer[particleIndex]->a = 1;
-		//(rand() % 1000) / 2000.0f + 0.1f
-		pContainer[particleIndex]->size = 10;
 	}
 }
 
-void ParticleSpawn::updateLiveParticles(int & particleCount, double delta)
+void ParticleSpawn::updateLiveParticles(double delta)
 {
 	for (int i = 0; i < maxParticles; i++)
 	{
 		Particle * p = pContainer[i]; 
 
+		p->life -= delta;
 		if (p->life > 0.0f) {
-
-			p->life -= delta;
-			if (p->life > 0.0f) {
-
-				p->speed += glm::vec3(0.0f, -9.81f, 0.0f)  * (float)delta * 0.5f;
-				p->pos += p->speed * (float)delta;
-				p->camDistance = pow(glm::length(p->pos - Window::cam_pos), 2);
-		
-				particle_pos[4 * particleCount + 0] = p->pos.x;
-				particle_pos[4 * particleCount + 1] = p->pos.y;
-				particle_pos[4 * particleCount + 2] = p->pos.z;
-				particle_pos[4 * particleCount + 3] = p->size;
-
-				particle_color[4 * particleCount + 0] = p->r;
-				particle_color[4 * particleCount + 1] = p->g;
-				particle_color[4 * particleCount + 2] = p->b;
-				particle_color[4 * particleCount + 3] = p->a;
-
-			}
-			else {
-				p->camDistance = -1.0f;
-			}
-
-			particleCount++;
+			float flameFlickerX = rand() % 10 / 10.0f + 0.2; //could use some work
+			float flameFlickerZ = rand() % 10 / 10.0f + 0.2; //could use some work
+			p->speed += glm::vec3(flameFlickerX, 2.0f, flameFlickerZ)  * (float)delta * 0.5f;
+			p->pos += p->speed * (float)delta;	
 
 		}
 	}
 }
 
-void ParticleSpawn::draw(GLint shader)
+void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 {
+	toWorld = c;
 	shaderProgram = shader;
 	double currentTime = glfwGetTime();
 	double delta = currentTime - beginTime;
 	beginTime = currentTime;
 
-	int newparticles = (int)(delta*500.0);
-	if (newparticles > (int)(0.016f*500.0))
-		newparticles = (int)(0.016f*500.0);
+	int newparticles = (int)(delta*300.0);
+	if (newparticles > (int)(0.016f*300.0))
+		newparticles = (int)(0.016f*300.0);
 
 	generateParticles(newparticles);
 
 	int particleCount = 0;
-	updateLiveParticles(particleCount, delta);
-
-	//sort them to optimize traversal and also to properly display by z-value
-	std::sort(pContainer.begin(),pContainer.end());
+	updateLiveParticles(delta);
 
 
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &Window::P[0][0]);
-	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &Window::C[0][0]);
 
-	glUniform3f(glGetUniformLocation(shaderProgram, "CameraRight_worldspace"), Window::V[0][0], Window::V[1][0], Window::V[2][0]);
-	glUniform3f(glGetUniformLocation(shaderProgram, "CameraUp_worldspace"), Window::V[0][1], Window::V[1][1], Window::V[2][1]);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	glUniform1i(glGetUniformLocation(shaderProgram, "texture"), 0);
 
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDepthMask(false);
+	for (int i = 0; i < maxParticles; i++)
+	{
+		Particle * p = pContainer[i];
 
-	glBindVertexArray(VAO);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO_pos);
-	glBufferData(GL_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLfloat), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, particleCount * sizeof(GLfloat) * 4, particle_pos);
+		if (p->life > 0.0f) {
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VBO_col);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, maxParticles * 4 * sizeof(GLubyte), NULL, GL_STREAM_DRAW);
-	glBufferSubData(GL_ARRAY_BUFFER, 0, particleCount * sizeof(GLubyte) * 4, particle_color);
+			//this way the texture isn't 2d. reset toWorld each time
+			toWorld = c;
+			//then transpose the model matrix with view matrix's rotation, with the position of this instance put in as a translation
+			modelTransposeViewRotation(p->pos);
+			//this way multiplication clears the rotation matrix, but saves the position of the instance
+			glm::mat4 modelview = Window::V * toWorld;
 
-
-	glVertexAttribDivisor(0, 0); // particles vertices : always reuse the same 4 vertices -> 0
-	glVertexAttribDivisor(1, 1); // positions : one per quad (its center)                 -> 1
-	glVertexAttribDivisor(2, 1); // color : one per quad                                  -> 1
-
-	glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 4, particleCount);
+			glUniform3f(glGetUniformLocation(shaderProgram, "instancePos"), p->pos.x, p->pos.y, p->pos.z);
+			glUniform4f(glGetUniformLocation(shaderProgram, "instanceColor"), p->r, p->g, p->b, p->a);
+			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelview"), 1, GL_FALSE, &modelview[0][0]);
+			glBindVertexArray(VAO);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
+			glBindVertexArray(0);
+			particleCount++;
+		}
+	}
 
 	//Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);
-	glDisableVertexAttribArray(0);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(2);
-	glDepthMask(true);
-	glDisable(GL_BLEND);
 
-	//std::cout << particleCount << std::endl;
+	std::cout << particleCount << std::endl;
+}
+
+void ParticleSpawn::modelTransposeViewRotation(glm::vec3 pos)
+{
+	toWorld = glm::translate(glm::mat4(1.0f), pos) * toWorld;
+	toWorld[0][0] = Window::V[0][0];
+	toWorld[0][1] = Window::V[1][0];
+	toWorld[0][2] = Window::V[2][0];
+	toWorld[1][0] = Window::V[0][1];
+	toWorld[1][1] = Window::V[1][1];
+	toWorld[1][2] = Window::V[2][1];
+	toWorld[2][0] = Window::V[0][2];
+	toWorld[2][1] = Window::V[1][2];
+	toWorld[2][2] = Window::V[2][2];
 }
 
 int ParticleSpawn::findUnusedParticle()
@@ -189,13 +168,36 @@ int ParticleSpawn::findUnusedParticle()
 	return 0;
 }
 
+unsigned int ParticleSpawn::loadTexture(char * path)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	int width, height, nrChannels;
+
+	unsigned char *data = stbi_load(path, &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+	else
+	{
+		std::cout << "Cubemap texture failed to load at path: " << path << std::endl;
+		stbi_image_free(data);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	return textureID;
+}
+
 ParticleSpawn::~ParticleSpawn()
 {
 	for (auto e : pContainer)
 		delete(e);
 
 	glDeleteVertexArrays(1, &VAO);
-	glDeleteBuffers(1, &VBO_vert);
-	glDeleteBuffers(1, &VBO_pos);
-	glDeleteBuffers(1, &VBO_col);
 }

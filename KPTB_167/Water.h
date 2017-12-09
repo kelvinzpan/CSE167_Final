@@ -31,7 +31,7 @@ public:
 	void bindReflectionBuffer();
 	void bindRefractionBuffer();
 	void unbindBuffer();
-	void draw(GLuint shader);
+	void draw(GLuint shader, glm::mat4 c);
 	void update();
 
 	const GLfloat vertices[8][3] = {
@@ -69,6 +69,7 @@ public:
 	GLuint reflectionFB, refractionFB;
 	GLuint reflectionTexture, refractionTexture, refractDepthTexture, dudvMap;
 	GLuint reflectDepthBuffer;
+	glm::mat4 toWorld;
 	int waterHeight = 0;
 	float waveSpeed = 0.03f;
 	float moveFactor = 0.0f;

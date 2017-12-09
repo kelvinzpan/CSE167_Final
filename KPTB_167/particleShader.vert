@@ -1,35 +1,28 @@
 #version 330 core
 
 // Input vertex data, different for all executions of this shader.
-layout(location = 0) in vec3 squareVertices;
-layout(location = 1) in vec4 pos; // Position of the center of the particule and size of the square
-layout(location = 2) in vec4 colors; // Position of the center of the particule and size of the square
+layout(location = 0) in vec3 position;
 
 // Output data ; will be interpolated for each fragment.
 //out vec2 UV;
 out vec4 particlecolor;
+out vec2 textureCoords;
 
 // Values that stay constant for the whole mesh.
-uniform vec3 CameraRight_worldspace;
-uniform vec3 CameraUp_worldspace;
-uniform mat4 view;
+//uniform mat4 model;
+//uniform mat4 view;
 uniform mat4 projection;
+uniform mat4 modelview;
+uniform vec3 instancePos;
+uniform vec4 instanceColor;
 
 void main()
 {
-	float particleSize = 100.0f; // because we encoded it this way.
-	vec3 particleCenter_wordspace = pos.xyz;
-	
-	//replaces the model portion of MVP
-	vec3 vertexPosition_worldspace = 
-		particleCenter_wordspace
-		+ CameraRight_worldspace * squareVertices.x * particleSize
-		+ CameraUp_worldspace * squareVertices.y * particleSize;
-
+	vec4 particlePos = vec4(position.x + instancePos.x, position.y + instancePos.y, position.z + instancePos.z, 1.0f);
 	// Output position of the vertex
-	gl_Position = projection * view * (squareVertices, 1.0f) * vec4(vertexPosition_worldspace, 1.0f);
+	gl_Position = projection * modelview * particlePos;
 
+	textureCoords = vec2(position.x/2.0 + 0.5, position.y/2.0 + 0.5);
 	// UV of the vertex. No special space for this one.
-	//UV = squareVertices.xy + vec2(0.5, 0.5);
-	particlecolor = colors;
+	particlecolor = instanceColor;
 }

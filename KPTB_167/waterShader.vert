@@ -18,6 +18,6 @@ void main(void) {
 	vec4 worldPos = model * vec4(position.x, 0.0, position.y, 1.0);
 	clipSpace = projection * view * worldPos;
 	gl_Position = clipSpace;
-	textureCoords = vec2(position.x/2400 + 0.5, position.y/2400 + 0.5) * tiling;
+	textureCoords = vec2(position.x/2 + 0.5, position.y/2 + 0.5) * tiling;
 	toCamera = cameraPos - worldPos.xyz;
 }

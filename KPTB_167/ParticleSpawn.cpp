@@ -245,4 +245,5 @@ ParticleSpawn::~ParticleSpawn()
 		delete(e);
 
 	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &VBO);
 }

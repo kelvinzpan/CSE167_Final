@@ -3,9 +3,21 @@
 Water::Water()
 {
 	beginTime = glfwGetTime();
+
+	GLfloat vertices[] = {
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 0.0f
+	};
+
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
-	glGenBuffers(1, &EBO);
+
 
 	// Bind VAO to start binding rest of the buffers
 	glBindVertexArray(VAO);
@@ -16,9 +28,7 @@ Water::Water()
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 
-	// EBO for indices, so we know order to render
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
 
 	// Unbind current VBO and VAO
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -87,6 +97,9 @@ void Water::initializeFrameBuffers()
 void Water::draw(GLuint shader, glm::mat4 c)
 {
 	toWorld = c;
+	float size = 2400;
+	toWorld = toWorld * glm::scale(glm::mat4(1.0f), glm::vec3(size, size, size));
+	toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-size / 2, 0, -size / 2)) * toWorld;
 	shaderProgram = shader;
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &Window::P[0][0]);
 	glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &Window::V[0][0]);
@@ -118,7 +131,7 @@ void Water::draw(GLuint shader, glm::mat4 c)
 	glBindTexture(GL_TEXTURE_2D, dudvMap);
 	glUniform1i(glGetUniformLocation(shaderProgram, "dudvMap"), 3);
 
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
 	
 	glBindVertexArray(0);
 }
@@ -173,5 +186,11 @@ unsigned int Water::loadTexture(char * path)
 
 Water::~Water()
 {
-
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &VBO);
+	glDeleteVertexArrays(1, &EBO);
+	glDeleteFramebuffers(1, &reflectionFB);
+	glDeleteFramebuffers(1, &refractionFB);
+	glDeleteFramebuffers(1, &refractDepthBuffer);
+	glDeleteFramebuffers(1, &reflectDepthBuffer);
 }

@@ -8,18 +8,73 @@ struct Light
 
 uniform Light light;
 uniform vec3 camPos;
+uniform bool useFlatColor;
+uniform float amp;
+
+uniform sampler2D botTex;
+uniform sampler2D midTex;
+uniform sampler2D topTex;
 
 in vec3 baseNormal;
 in vec3 vertex;
 in vec3 baseColor;
+in vec2 pass_texCoords;
 
 out vec4 color;
 
 void main()
 {
-	vec3 c_ambi = baseColor;
-	vec3 c_diff = baseColor;
-	vec3 c_spec = baseColor;
+	vec3 c_ambi, c_diff, c_spec;
+
+	if (useFlatColor)
+	{
+		c_ambi = baseColor;
+		c_diff = baseColor;
+		c_spec = baseColor;
+	}
+	else
+	{
+		// Sample from texture based on current height
+		float height = vertex.y;
+		float h0 = -amp;
+		float h1 = amp / 10.0f;
+		float h2 = amp / 10.0f * 4.0f;
+		float h3 = amp;
+		float blendDist = amp / 20.0f;
+
+		vec4 c1 = texture(botTex, pass_texCoords) * 0.3f;
+		vec4 c2 = texture(midTex, pass_texCoords) * 0.6;
+		vec4 c3 = texture(topTex, pass_texCoords);
+
+		vec3 texColor;
+
+		if (height < h1 - blendDist)
+		{
+			texColor = vec3(c1);
+		}
+		else if (height < h1 + blendDist)
+		{
+			float ratio = (height - (h1 - blendDist)) / (blendDist * 2);
+			texColor = vec3( c1 * (1.0f - ratio) + c2 * ratio );
+		}
+		else if (height < h2 - blendDist)
+		{
+			texColor = vec3(c2);
+		}
+		else if (height < h2 + blendDist)
+		{
+			float ratio = (height - (h2 - blendDist)) / (blendDist * 2);
+			texColor = vec3( c2 * (1.0f - ratio) + c3 * ratio );
+		}
+		else
+		{
+			texColor = vec3(c3);
+		}
+
+		c_ambi = texColor;
+		c_diff = texColor;
+		c_spec = texColor;
+	}
 	float spec_shine = 0.1f;
 
 	vec3 c_l = light.light_color;

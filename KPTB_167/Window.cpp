@@ -304,21 +304,31 @@ void Window::renderScene()
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// Check for a key press
-	if (action == GLFW_PRESS)
+	switch (action)
 	{
-		// Check if escape was pressed
-		if (key == GLFW_KEY_ESCAPE)
+	case GLFW_PRESS:
+
+		switch (key)
 		{
-			// Close the window. This causes the program to also terminate.
+		// Close the window. This causes the program to also terminate.
+		case GLFW_KEY_ESCAPE:
 			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-		// T/t, randomize terrain
-		if (key == GLFW_KEY_T)
-		{
+			break;
+
+		// Re-seed and re-generate the terrain.
+		case GLFW_KEY_T:
 			Window::randSeed = rand();
 			Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
 			Window::terrain = randTerrain;
+			break;
+
+		// Alternate between textured terrain and flat shading.
+		case GLFW_KEY_Y:
+			Window::terrain->swapColors();
+			break;
 		}
+
+		break; // End of GLFW_PRESS
 	}
 }
 

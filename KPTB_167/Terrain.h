@@ -29,15 +29,15 @@ public:
 	std::vector<unsigned int> indices;
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
-	std::vector<glm::vec3> textures;
+	std::vector<glm::vec3> colors;
 
 	GLuint VAO, VBO_v, VBO_n, VBO_c, EBO;
 	Light terrainLight;
 
 	PerlinNoise * heightGen;
 	std::vector<std::vector<float>> heights;
-
-	std::vector<std::vector<glm::vec3>> colors;
+	
+	std::vector<unsigned int> texIDs;
 
 	Terrain();
 	Terrain(int gridSize, int seed); // Use default seed if seed == -1

@@ -187,9 +187,7 @@ void Terrain::generateBuffers()
 												(float) z / (this->gridSize - 1) * SIZE - SIZE / 2.0f) );
 			//std::cout << "(" << vertices[vertices.size() - 1].x << ", " << vertices[vertices.size() - 1].y << ", " << vertices[vertices.size() - 1].z << ")" << std::endl;
 			this->normals.push_back(calculateNormal(x, z, this->heights));
-			//std::cout << "(" << normals[normals.size() - 1].x << ", " << normals[normals.size() - 1].y << ", " << normals[normals.size() - 1].z << ")" << std::endl;
-			this->textures.push_back(calculateColor(this->heights[z][x], AMP, COLORS));
-			//std::cout << "(" << textures[textures.size() - 1].x << ", " << textures[textures.size() - 1].y << ", " << textures[textures.size() - 1].z << ")" << std::endl;
+			this->colors.push_back(calculateColor(this->heights[z][x], AMP, COLORS));
 		}
 	}
 }
@@ -218,7 +216,7 @@ void Terrain::loadBuffers()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_TRUE, 3 * sizeof(GLfloat), (GLvoid*)0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, VBO_c);
-	glBufferData(GL_ARRAY_BUFFER, this->textures.size() * sizeof(glm::vec3), this->textures.data(), GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, this->colors.size() * sizeof(glm::vec3), this->colors.data(), GL_STATIC_DRAW);
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 

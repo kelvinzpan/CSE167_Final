@@ -25,7 +25,7 @@ class ParticleSpawn
 public:
 	struct Particle {
 		glm::vec3 pos, speed;
-		GLubyte r, g, b, a; // Color
+		float r, g, b, a; // Color
 		float life; // Remaining life of the particle. if < 0 : dead and unused.
 
 		Particle()

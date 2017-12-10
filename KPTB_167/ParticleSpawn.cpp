@@ -45,7 +45,7 @@ void ParticleSpawn::generateParticles(int newparticles)
 	for (int i = 0; i < newparticles; i++)
 	{
 		int particleIndex = findUnusedParticle();
-		pContainer[particleIndex]->life = 2.0f; 
+		pContainer[particleIndex]->life = 3.0f; 
 		pContainer[particleIndex]->pos = glm::vec3(0, 0, 0.0f);
 
 		float spread = 1.5f;
@@ -58,9 +58,9 @@ void ParticleSpawn::generateParticles(int newparticles)
 
 		pContainer[particleIndex]->speed = maindir + randomdir*spread;
 
-		pContainer[particleIndex]->r = 255;
-		pContainer[particleIndex]->g = 0;
-		pContainer[particleIndex]->b = 0;
+		pContainer[particleIndex]->r = 1.0f;
+		pContainer[particleIndex]->g = 0.0f;
+		pContainer[particleIndex]->b = 0.0f;
 		pContainer[particleIndex]->a = 1;
 	}
 }
@@ -77,7 +77,50 @@ void ParticleSpawn::updateLiveParticles(double delta)
 			float flameFlickerZ = rand() % 10 / 10.0f + 0.2; //could use some work
 			p->speed += glm::vec3(flameFlickerX, 2.0f, flameFlickerZ)  * (float)delta * 0.5f;
 			p->pos += p->speed * (float)delta;	
-
+			
+			//simulate fire color
+			if (p->life >= 2.625f)
+			{
+				p->r = 0.886f;
+				p->g = 0.345f;
+				p->b = 0.133f;
+			}
+			else if (p->life >= 2.25f)
+			{
+				p->g = 0.552f;
+			}
+			else if (p->life >= 1.875f)
+			{
+				p->g = 0.605f;
+			}
+			else if (p->life >= 1.5f)
+			{
+				p->g = 0.656f;
+			}
+			else if(p->life >= 1.125f)
+			{
+				p->g = 0.707f;
+			}
+			else if (p->life >= 0.75f)
+			{
+				p->g = 0.754f;
+			}
+			else if (p->life >= 0.375f)
+			{
+				p->g = 0.806f;
+			}
+			else if(p->life >= 0.15f)
+			{
+				p->r = 0.3464f;
+				p->g = 0.155f;
+				p->b = 0.133f;
+			}
+			else
+			{
+				p->r = 0.252f;
+				p->g = 0.189f;
+				p->b = 0.133f;
+			}
 		}
 	}
 }
@@ -90,9 +133,9 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 	double delta = currentTime - beginTime;
 	beginTime = currentTime;
 
-	int newparticles = (int)(delta*300.0);
+	int newparticles = (int)(delta*350.0);
 	if (newparticles > (int)(0.016f*300.0))
-		newparticles = (int)(0.016f*300.0);
+		newparticles = (int)(0.016f*350.0);
 
 	generateParticles(newparticles);
 
@@ -121,6 +164,7 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 
 			glUniform3f(glGetUniformLocation(shaderProgram, "instancePos"), p->pos.x, p->pos.y, p->pos.z);
 			glUniform4f(glGetUniformLocation(shaderProgram, "instanceColor"), p->r, p->g, p->b, p->a);
+			//std::cout << (float)p->r << " " << (float)p->g << " " << (float)p->b << " " << (float) p->a << std::endl;
 			glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "modelview"), 1, GL_FALSE, &modelview[0][0]);
 			glBindVertexArray(VAO);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 6);
@@ -137,7 +181,7 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 
 void ParticleSpawn::modelTransposeViewRotation(glm::vec3 pos)
 {
-	toWorld = glm::translate(glm::mat4(1.0f), pos) * toWorld;
+	//toWorld = glm::translate(glm::mat4(1.0f), pos) * toWorld;
 	toWorld[0][0] = Window::V[0][0];
 	toWorld[0][1] = Window::V[1][0];
 	toWorld[0][2] = Window::V[2][0];

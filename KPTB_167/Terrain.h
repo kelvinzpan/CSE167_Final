@@ -24,6 +24,7 @@ class Terrain
 public:
 	int gridSize;
 	int seed;
+	bool useFlatColor;
 
 	std::vector<unsigned int> indices;
 	std::vector<glm::vec3> vertices;
@@ -33,7 +34,6 @@ public:
 	GLuint VAO, VBO_v, VBO_n, VBO_c, EBO;
 	Light terrainLight;
 
-	// HeightGen * heightGen;
 	PerlinNoise * heightGen;
 	std::vector<std::vector<float>> heights;
 
@@ -44,6 +44,7 @@ public:
 	~Terrain();
 
 	void draw(GLuint program, glm::mat4 C);
+	void swapColors();
 	
 	std::vector<std::vector<float>> generateHeights(int gridSize, PerlinNoise * heightGen);
 	std::vector<unsigned int> generateIndices(int vertexCount);
@@ -51,6 +52,7 @@ public:
 	float getHeight(unsigned int x, unsigned int z, std::vector<std::vector<float>> &heights);
 	void generateBuffers();
 	void loadBuffers();
+	unsigned int loadTexture(std::string filepath);
 };
 
 #endif

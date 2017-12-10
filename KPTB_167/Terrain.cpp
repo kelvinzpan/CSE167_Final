@@ -1,12 +1,14 @@
 #include "Terrain.h"
 #include "Window.h"
+#include "stb_image.h"
 
-const double PERSIST = 0.5;
-const double FREQ = 0.1;
-const double AMP = 100.0;
-const int OCT = 5;
+const double PERSIST = 0.4;
+const double FREQ = 0.03;
+const double AMP = 169.0;
+const double AMP_OFFSET = 42.0;
+const int OCT = 4;
 
-const float SIZE = 1000.0f;
+const float SIZE = 2000.0f;
 
 std::vector<glm::vec3> COLORS = // Lowest to highest
 {
@@ -15,12 +17,20 @@ std::vector<glm::vec3> COLORS = // Lowest to highest
 	glm::vec3(1.0f, 0.96f, 0.96f) // white
 };
 
+std::vector<std::string> TEXTURES = // Lowest to highest
+{
+	"res/textures/groundTex.png",
+	"res/textures/darkGrassTex.png",
+	"res/textures/snowTex.png"
+};
+
 /*
  * Class constructor, use default seed if seed == -1
  */
 Terrain::Terrain(int gridSize, int seed)
 {
 	this->gridSize = gridSize;
+	this->useFlatColor = false;
 	this->seed = (seed == -1) ? 420 : seed;
 
 	heightGen = new PerlinNoise(PERSIST, FREQ, AMP, OCT, this->seed);
@@ -53,6 +63,14 @@ Terrain::~Terrain()
 }
 
 /*
+ * Alternate boolean that swaps betweens flat colors and textures.
+ */
+void Terrain::swapColors()
+{
+	this->useFlatColor = !this->useFlatColor;
+}
+
+/*
  * Draw the terrain. Intended to call from Window's draw function
  */
 void Terrain::draw(GLuint program, glm::mat4 C)
@@ -81,7 +99,7 @@ std::vector<std::vector<float>> Terrain::generateHeights(int gridSize, PerlinNoi
 	{
 		for (unsigned int x = 0; x < heights[z].size(); x++)
 		{
-			heights[z][x] = heightGen->GetHeight(x, z);
+			heights[z][x] = heightGen->GetHeight(x, z) + AMP_OFFSET;
 		}
 	}
 	return heights;
@@ -209,4 +227,30 @@ void Terrain::loadBuffers()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
+}
+
+unsigned int Terrain::loadTexture(std::string filepath)
+{
+	unsigned int textureID;
+	glGenTextures(1, &textureID);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+
+	int width, height, nrChannels;
+
+	unsigned char *data = stbi_load(filepath.c_str(), &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		stbi_image_free(data);
+	}
+	else
+	{
+		std::cout << "Cubemap texture failed to load at path: " << filepath << std::endl;
+		stbi_image_free(data);
+	}
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	return textureID;
 }

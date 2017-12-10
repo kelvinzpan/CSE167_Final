@@ -3,6 +3,7 @@
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec3 normal;
 layout (location = 2) in vec3 color;
+layout (location = 3) in vec2 texCoords;
 
 uniform mat4 projection;
 uniform mat4 modelview;
@@ -12,6 +13,7 @@ uniform vec4 clippingPlane;
 out vec3 baseNormal;
 out vec3 vertex;
 out vec3 baseColor;
+out vec2 pass_texCoords;
 
 void main()
 {
@@ -23,4 +25,5 @@ void main()
 	baseNormal = normal;
 	vertex = vec3(model * vec4(position, 1.0f));
 	baseColor = color;
+	pass_texCoords = texCoords;
 }

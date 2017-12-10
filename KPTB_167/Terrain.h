@@ -30,8 +30,9 @@ public:
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec3> normals;
 	std::vector<glm::vec3> colors;
+	std::vector<glm::vec2> texCoords;
 
-	GLuint VAO, VBO_v, VBO_n, VBO_c, EBO;
+	GLuint VAO, VBO_v, VBO_n, VBO_c, VBO_t, EBO;
 	Light terrainLight;
 
 	PerlinNoise * heightGen;

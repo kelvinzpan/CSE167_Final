@@ -67,8 +67,10 @@ public:
 	static glm::vec3 cam_look_at;
 	static glm::vec3 cam_up;
 
-	static Terrain* terrain;
+	static Terrain* currTerrain;
+	static Terrain* baseTerrain;
 	static Terrain* randTerrain;
+	static bool showingRand;
 	static int randSeed;
 	static GLint terrainShaderProgram;
 	static int terrainSize;

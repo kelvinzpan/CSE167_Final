@@ -17,11 +17,11 @@ std::vector<glm::vec3> COLORS = // Lowest to highest
 	glm::vec3(1.0f, 0.96f, 0.96f) // white
 };
 
-std::vector<std::string> TEXTURES = // Lowest to highest
+std::vector<std::string> TEXTURES = // Lowest to highest, implementation hardcodes number of textures. Only use 3.
 {
-	"res/textures/groundTex.png",
-	"res/textures/darkGrassTex.png",
-	"res/textures/snowTex.png"
+	"res/textures/mudTex.jpg",
+	"res/textures/grassTex.jpg",
+	"res/textures/snowTex.jpg"
 };
 
 /*
@@ -41,9 +41,19 @@ Terrain::Terrain(int gridSize, int seed)
 		glm::vec3(-1.0f, -0.5f, 0.5f) // direction
 	};
 
+	// Generate heights
 	this->heights = Terrain::generateHeights(this->gridSize, this->heightGen);
 
+	// Generate textures
+	for (auto filepath : TEXTURES)
+	{
+		texIDs.push_back(this->loadTexture(filepath));
+	}
+
+	// Generate indices
 	this->indices = Terrain::generateIndices(this->heights.size());
+
+	// Generate and load everything into VBOs
 	Terrain::generateBuffers();
 	Terrain::loadBuffers();
 }
@@ -59,6 +69,7 @@ Terrain::~Terrain()
 	glDeleteBuffers(1, &VBO_v);
 	glDeleteBuffers(1, &VBO_n);
 	glDeleteBuffers(1, &VBO_c);
+	glDeleteBuffers(1, &VBO_t);
 	glDeleteBuffers(1, &EBO);
 }
 
@@ -83,6 +94,13 @@ void Terrain::draw(GLuint program, glm::mat4 C)
 	glUniform3f(glGetUniformLocation(program, "light.light_color"), this->terrainLight.light_color.x, this->terrainLight.light_color.y, this->terrainLight.light_color.z);
 	glUniform3f(glGetUniformLocation(program, "light.light_dir"), this->terrainLight.light_dir.x, this->terrainLight.light_dir.y, this->terrainLight.light_dir.z);
 	glUniform3f(glGetUniformLocation(program, "camPos"), Window::cam_pos.x, Window::cam_pos.y, Window::cam_pos.z);
+
+	glUniform1i(glGetUniformLocation(program, "useFlatColor"), Terrain::useFlatColor);
+	glUniform1f(glGetUniformLocation(program, "amp"), (float) AMP + AMP_OFFSET);
+
+	glUniform1i(glGetUniformLocation(program, "botTex"), 4);
+	glUniform1i(glGetUniformLocation(program, "midTex"), 5);
+	glUniform1i(glGetUniformLocation(program, "topTex"), 6);
 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, (GLsizei)indices.size(), GL_UNSIGNED_INT, 0);
@@ -182,12 +200,15 @@ void Terrain::generateBuffers()
 {
 	for (unsigned int z = 0; z < this->heights.size(); z++) {
 		for (unsigned int x = 0; x < this->heights[z].size(); x++) {
-			this->vertices.push_back(glm::vec3( (float) x / (this->gridSize - 1) * SIZE - SIZE / 2.0f, 
-											    this->heights[z][x],
-												(float) z / (this->gridSize - 1) * SIZE - SIZE / 2.0f) );
+			float newX = (float)x / (this->gridSize - 1) * SIZE - SIZE / 2.0f;
+			float newZ = (float)z / (this->gridSize - 1) * SIZE - SIZE / 2.0f;
+			float textureScale = 0.05f;
+
+			this->vertices.push_back(glm::vec3( newX, this->heights[z][x], newZ));
 			//std::cout << "(" << vertices[vertices.size() - 1].x << ", " << vertices[vertices.size() - 1].y << ", " << vertices[vertices.size() - 1].z << ")" << std::endl;
 			this->normals.push_back(calculateNormal(x, z, this->heights));
 			this->colors.push_back(calculateColor(this->heights[z][x], AMP, COLORS));
+			this->texCoords.push_back(glm::vec2(newX, newZ) * textureScale);
 		}
 	}
 }
@@ -201,6 +222,7 @@ void Terrain::loadBuffers()
 	glGenBuffers(1, &VBO_v);
 	glGenBuffers(1, &VBO_n);
 	glGenBuffers(1, &VBO_c);
+	glGenBuffers(1, &VBO_t);
 	glGenBuffers(1, &EBO);
 
 	glBindVertexArray(VAO);
@@ -220,8 +242,21 @@ void Terrain::loadBuffers()
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 
+	glBindBuffer(GL_ARRAY_BUFFER, VBO_t);
+	glBufferData(GL_ARRAY_BUFFER, this->texCoords.size() * sizeof(glm::vec2), this->texCoords.data(), GL_STATIC_DRAW);
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(GLfloat), (GLvoid*)0);
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, this->indices.size() * sizeof(unsigned int), &this->indices[0], GL_STATIC_DRAW);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, this->texIDs[0]);
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, this->texIDs[1]);
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, this->texIDs[2]);
+	glActiveTexture(GL_TEXTURE0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
@@ -249,6 +284,10 @@ unsigned int Terrain::loadTexture(std::string filepath)
 	
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+	glBindTexture(GL_TEXTURE_2D, 0);
 
 	return textureID;
 }

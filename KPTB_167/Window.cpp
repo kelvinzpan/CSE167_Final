@@ -57,14 +57,16 @@ MatrixTransform* playerMT;
 Geode* playerModel;
 
 // Procedural terrain parameters
-Terrain* Window::terrain;
 int Window::terrainSize = 500; // How detailed
 int Window::terrainSeed = -1; // If -1, use default seed
 GLint Window::terrainShaderProgram;
 #define TERRAIN_VERTEX_SHADER_PATH "terrain_toon_shader.vert"
 #define TERRAIN_FRAGMENT_SHADER_PATH "terrain_toon_shader.frag"
 
+Terrain* Window::currTerrain;
+Terrain* Window::baseTerrain;
 Terrain* Window::randTerrain;
+bool Window::showingRand = false;
 int Window::randSeed;
 
 // Particle effect parameters
@@ -97,10 +99,11 @@ void Window::initialize_objects()
 	initialize_scene_graph();
 
 	// Set up terrain
-	Window::terrain = new Terrain(Window::terrainSize, Window::terrainSeed);
+	Window::baseTerrain = new Terrain(Window::terrainSize, Window::terrainSeed);
 	srand(time(0));
 	Window::randSeed = rand();
 	Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
+	Window::currTerrain = Window::baseTerrain;
 	terrainShaderProgram = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
 
 	// Set up particle effects
@@ -136,6 +139,9 @@ void Window::clean_up()
 
 	glDeleteProgram(Window::skyboxShaderProgram);
 	delete(Window::skybox);
+
+	delete(Window::baseTerrain);
+	delete(Window::randTerrain);
 }
 
 GLFWwindow* Window::create_window(int width, int height)
@@ -296,7 +302,7 @@ void Window::renderScene()
 	if (!noTerrain)
 	{
 		glUseProgram(terrainShaderProgram);
-		Window::terrain->draw(terrainShaderProgram, Window::C);
+		Window::currTerrain->draw(terrainShaderProgram, Window::C);
 		glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
 	}
 
@@ -317,29 +323,55 @@ void Window::renderScene()
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// Check for a key press
-	if (action == GLFW_PRESS)
+	switch (action)
 	{
-		// Check if escape was pressed
-		if (key == GLFW_KEY_ESCAPE)
+	case GLFW_PRESS:
+
+		switch (key)
 		{
-			// Close the window. This causes the program to also terminate.
+		// Close the window. This causes the program to also terminate.
+		case GLFW_KEY_ESCAPE:
 			glfwSetWindowShouldClose(window, GL_TRUE);
-		}
-		// T/t, randomize terrain
-		if (key == GLFW_KEY_T)
-		{
+			break;
+
+		// Toggle between base terrain and random terrain
+		case GLFW_KEY_R:
+			if (Window::showingRand)
+			{
+				Window::currTerrain = Window::baseTerrain;
+				Window::showingRand = false;
+			}
+			else
+			{
+				Window::currTerrain = Window::randTerrain;
+				Window::showingRand = true;
+			}
+			break;
+
+		// Re-seed and re-generate the terrain.
+		case GLFW_KEY_T:
 			Window::randSeed = rand();
+			delete(Window::randTerrain);
 			Window::randTerrain = new Terrain(Window::terrainSize, Window::randSeed);
-			Window::terrain = randTerrain;
-		}
-		if (key == GLFW_KEY_P)
-		{
+			Window::currTerrain = Window::randTerrain;
+			break;
+
+		// Alternate between textured terrain and flat shading.
+		case GLFW_KEY_Y:
+			Window::currTerrain->swapColors();
+			break;
+
+		// Toggle particle count
+		case GLFW_KEY_P:
 			Window::showParticleCount = !Window::showParticleCount;
-		}
-		if (key == GLFW_KEY_N)
-		{
+			break;
+
+		// Toggle rendering terrain
+		case GLFW_KEY_N:
 			Window::noTerrain = !Window::noTerrain;
+			break;
 		}
+		break; // End of GLFW_PRESS
 	}
 }
 

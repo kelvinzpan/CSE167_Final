@@ -133,9 +133,9 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 	double delta = currentTime - beginTime;
 	beginTime = currentTime;
 
-	int newparticles = (int)(delta*350.0);
-	if (newparticles > (int)(0.016f*300.0))
-		newparticles = (int)(0.016f*350.0);
+	int newparticles = (int)(delta*200.0);
+	if (newparticles > (int)(0.016f*200.0))
+		newparticles = (int)(0.016f*200.0);
 
 	generateParticles(newparticles);
 
@@ -175,8 +175,9 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 
 	//Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);
-
-	std::cout << particleCount << std::endl;
+	
+	if(Window::showParticleCount)
+		std::cout << "Currently alive particle count: " << particleCount << std::endl;
 }
 
 void ParticleSpawn::modelTransposeViewRotation(glm::vec3 pos)

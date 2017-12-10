@@ -34,7 +34,7 @@ void Water::initializeFrameBuffers()
 	//reflection fbo
 	glGenFramebuffers(1, &reflectionFB);
 	glBindFramebuffer(GL_FRAMEBUFFER, reflectionFB);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	//glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
 	//reflection texture
 	glGenTextures(1, &reflectionTexture);
@@ -42,34 +42,43 @@ void Water::initializeFrameBuffers()
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glFramebufferTexture2D(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, reflectionTexture, 0);
 
 	//refraction fbo
 	glGenFramebuffers(1, &refractionFB);
 	glBindFramebuffer(GL_FRAMEBUFFER, refractionFB);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	//glDrawBuffer(GL_COLOR_ATTACHMENT0);
 		
 	//refraction texture
 	glGenTextures(1, &refractionTexture);
 	glBindTexture(GL_TEXTURE_2D, refractionTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, REFRACTION_WIDTH, REFRACTION_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, refractionTexture, 0);
 
-	//depth render buffer
+	//depth render buffer reflect
 	glGenRenderbuffers(1, &reflectDepthBuffer);
 	glBindRenderbuffer(GL_RENDERBUFFER, reflectDepthBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, REFLECTION_WIDTH, REFLECTION_HEIGHT);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, reflectDepthBuffer);
 
+	glGenRenderbuffers(1, &refractDepthBuffer);
+	glBindRenderbuffer(GL_RENDERBUFFER, refractDepthBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, REFRACTION_WIDTH, REFRACTION_HEIGHT);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, refractDepthBuffer);
+
 	////depth buffer texture for refraction
-	glGenTextures(1, &refractDepthTexture);
-	glBindTexture(GL_TEXTURE_2D, refractDepthTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, refractDepthTexture, 0);
+	//glGenTextures(1, &refractDepthTexture);
+	//glBindTexture(GL_TEXTURE_2D, refractDepthTexture);
+	//glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, REFLECTION_WIDTH, REFLECTION_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_BYTE, NULL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	//glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, refractDepthTexture, 0);
 
 	//unbind, this will go back to normal frame buffer
 	//glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -92,21 +101,22 @@ void Water::draw(GLuint shader, glm::mat4 c)
 	moveFactor += waveSpeed * delta;
 	moveFactor = fmod(moveFactor, 1.0f);
 	glUniform1f(glGetUniformLocation(shaderProgram, "moveFactor"), moveFactor);
-	//glActiveTexture(GL_TEXTURE0);
-	//glBindTexture(GL_TEXTURE_2D, refractionTexture);
-	//glUniform1i(glGetUniformLocation(shaderProgram, "textureTest"), 0);
+	glActiveTexture(GL_TEXTURE10);
 
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, reflectionTexture);
-	glUniform1i(glGetUniformLocation(shaderProgram, "reflection"), 0);
+	glUniform1i(glGetUniformLocation(shaderProgram, "textureTest"), 10);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, refractionTexture);
-	glUniform1i(glGetUniformLocation(shaderProgram, "refraction"), 1);
+	glBindTexture(GL_TEXTURE_2D, reflectionTexture);
+	glUniform1i(glGetUniformLocation(shaderProgram, "reflection"), 1);
 
 	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, refractionTexture);
+	glUniform1i(glGetUniformLocation(shaderProgram, "refraction"), 2);
+
+	glActiveTexture(GL_TEXTURE3);
 	glBindTexture(GL_TEXTURE_2D, dudvMap);
-	glUniform1i(glGetUniformLocation(shaderProgram, "dudvMap"), 2);
+	glUniform1i(glGetUniformLocation(shaderProgram, "dudvMap"), 3);
 
 	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	

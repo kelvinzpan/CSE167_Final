@@ -36,9 +36,9 @@ public:
 
 	const GLfloat vertices[8][3] = {
 		// "Front" vertices
-		{ -1000.0, -1000.0,  1000.0 },{ 1000.0, -1000.0,  1000.0 },{ 1000.0,  1000.0,  1000.0 },{ -1000.0,  1000.0,  1000.0 },
+		{ -1200.0, -1200.0,  1200.0 },{ 1200.0, -1200.0,  1200.0 },{ 1200.0,  1200.0,  1200.0 },{ -1200.0,  1200.0,  1200.0 },
 		// "Back" vertices
-		{ -1000.0, -1000.0, -1000.0 },{ 1000.0, -1000.0, -1000.0 },{ 1000.0,  1000.0, -1000.0 },{ -1000.0,  1000.0, -1000.0 }
+		{ -1200.0, -1200.0, -1200.0 },{ 1200.0, -1200.0, -1200.0 },{ 1200.0,  1200.0, -1200.0 },{ -1200.0,  1200.0, -1200.0 }
 	};
 
 	// Note that GL_QUADS is deprecated in modern OpenGL (and removed from OSX systems).
@@ -58,19 +58,19 @@ public:
 		{ 3, 2, 6, 6, 7, 3 }
 	};
 
-	int REFLECTION_WIDTH = 320;
-	int REFLECTION_HEIGHT = 180;
+	int REFLECTION_WIDTH = 1920;
+	int REFLECTION_HEIGHT = 1080;
 
-	int REFRACTION_WIDTH = 1280;
-	int REFRACTION_HEIGHT = 720;
+	int REFRACTION_WIDTH = 1920;
+	int REFRACTION_HEIGHT = 1080;
 
 	GLuint VAO, VBO, EBO;
 	GLuint shaderProgram;
 	GLuint reflectionFB, refractionFB;
-	GLuint reflectionTexture, refractionTexture, refractDepthTexture, dudvMap;
-	GLuint reflectDepthBuffer;
+	GLuint reflectionTexture, refractionTexture, dudvMap;
+	GLuint reflectDepthBuffer , refractDepthBuffer;
 	glm::mat4 toWorld;
-	int waterHeight = 0;
+	float waterHeight = 0.0f;
 	float waveSpeed = 0.03f;
 	float moveFactor = 0.0f;
 	unsigned int textureID;

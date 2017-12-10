@@ -15,7 +15,6 @@ const float modifier = 0.02;
 
 void main(void) {
 
-	//color = vec4(0.0, 0.0, 1.0, 1.0);
 	//vec4 texColor = texture(textureTest, textureCoords);
 	//color = texColor;
 
@@ -36,11 +35,12 @@ void main(void) {
 	vec3 viewVec = normalize(toCamera);
 	float refractiveFactor = dot(viewVec, vec3(0.0f, 1.0f, 0.0f));
 	//change how reflective it is
-	refractiveFactor = pow(refractiveFactor, 0.8f);	
+	refractiveFactor = pow(refractiveFactor, 2.0f);	
 
 	vec4 colorReflect = texture(reflection, reflectCoords);
 	vec4 colorRefract = texture(refraction, refractCoords);
 
-	color = mix(colorReflect, colorRefract, 0.5);
+	color = mix(colorReflect, colorRefract, refractiveFactor);
 	color = mix(color, vec4(0.0f, 0.3f, 0.5f, 1.0f), 0.2);
+
 }

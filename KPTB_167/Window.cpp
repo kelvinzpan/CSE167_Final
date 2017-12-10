@@ -18,6 +18,8 @@ GLint Window::skyboxShaderProgram;
 // Mouse control parameters
 bool Window::pressMouseLeft = false;
 bool Window::pressMouseRight = false;
+bool Window::showParticleCount = false;
+bool Window::noTerrain = false;
 double Window::mousePosX = 0.0;
 double Window::mousePosY = 0.0;
 
@@ -233,7 +235,7 @@ void Window::display_callback(GLFWwindow* window)
 	glUseProgram(waterShaderProgram);
 	waterTest->draw(waterShaderProgram, Window::C);
 	glDisable(GL_BLEND);
-
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	renderScene();
 
 	// Gets events, including input such as keyboard and mouse or window resizing
@@ -259,22 +261,29 @@ void Window::renderSceneClipping(int mode)
 	if (mode == 0) //reflect
 	{
 		plane.y = 1.0f;
+		plane.w = -waterTest->waterHeight;
 	}
-	else
+	else if(mode == 1)
 	{
 		plane.y = -1.0f;
+		plane.w = waterTest->waterHeight;
 	}
-	// Draw terrain
-	glUseProgram(terrainShaderProgram);
-	Window::terrain->draw(terrainShaderProgram, Window::C);
+	//commenting them out for now cause idk if its necessary to render them, also because it is not working lul
 
-	// Use the shader of programID
-	glUseProgram(toonShaderProgram);
-	world->draw(toonShaderProgram, Window::C);
-	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w );
+	//if (!noTerrain)
+	//{
+	//	glUseProgram(terrainShaderProgram);
+	//	Window::terrain->draw(terrainShaderProgram, Window::C);
+	//	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+	//}
 
-	glUseProgram(particleShaderProgram);
-	testSpawner->draw(particleShaderProgram, Window::C);
+	//// Use the shader of programID
+	//glUseProgram(toonShaderProgram);
+	//world->draw(toonShaderProgram, Window::C);
+	//glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w );
+
+	//glUseProgram(particleShaderProgram);
+	//testSpawner->draw(particleShaderProgram, Window::C);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
@@ -284,9 +293,13 @@ void Window::renderSceneClipping(int mode)
 
 void Window::renderScene()
 {
-	// Draw terrain
-	glUseProgram(terrainShaderProgram);
-	Window::terrain->draw(terrainShaderProgram, Window::C);
+	if (!noTerrain)
+	{
+		glUseProgram(terrainShaderProgram);
+		Window::terrain->draw(terrainShaderProgram, Window::C);
+		glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
 	world->draw(toonShaderProgram, Window::C);
@@ -326,8 +339,17 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		case GLFW_KEY_Y:
 			Window::terrain->swapColors();
 			break;
-		}
 
+		// Toggle particle count
+		case GLFW_KEY_P:
+			Window::showParticleCount = !Window::showParticleCount;
+			break;
+
+		// Toggle rendering terrain
+		case GLFW_KEY_N:
+			Window::noTerrain = !Window::noTerrain;
+			break;
+		}
 		break; // End of GLFW_PRESS
 	}
 }
@@ -350,6 +372,7 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 			std::cout << "Mouse right-clicked." << std::endl;
 			Window::pressMouseRight = true;
 			break;
+
 		}
 		break;
 

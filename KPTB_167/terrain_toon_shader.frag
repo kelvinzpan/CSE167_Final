@@ -37,13 +37,13 @@ void main()
 		// Sample from texture based on current height
 		float height = vertex.y;
 		float h0 = -amp;
-		float h1 = amp / 10.0f;
-		float h2 = amp / 10.0f * 4.0f;
+		float h1 = amp / 12.0f;
+		float h2 = amp / 10.0f * 5.0f;
 		float h3 = amp;
 		float blendDist = amp / 20.0f;
 
-		vec4 c1 = texture(botTex, pass_texCoords) * 0.3f;
-		vec4 c2 = texture(midTex, pass_texCoords) * 0.6;
+		vec4 c1 = texture(botTex, pass_texCoords) * 0.2f;
+		vec4 c2 = texture(midTex, pass_texCoords) * 0.2f;
 		vec4 c3 = texture(topTex, pass_texCoords);
 
 		vec3 texColor;

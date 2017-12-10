@@ -202,11 +202,13 @@ void Terrain::generateBuffers()
 		for (unsigned int x = 0; x < this->heights[z].size(); x++) {
 			float newX = (float)x / (this->gridSize - 1) * SIZE - SIZE / 2.0f;
 			float newZ = (float)z / (this->gridSize - 1) * SIZE - SIZE / 2.0f;
+			float textureScale = 0.05f;
+
 			this->vertices.push_back(glm::vec3( newX, this->heights[z][x], newZ));
 			//std::cout << "(" << vertices[vertices.size() - 1].x << ", " << vertices[vertices.size() - 1].y << ", " << vertices[vertices.size() - 1].z << ")" << std::endl;
 			this->normals.push_back(calculateNormal(x, z, this->heights));
 			this->colors.push_back(calculateColor(this->heights[z][x], AMP, COLORS));
-			this->texCoords.push_back(glm::vec2(newX, newZ));
+			this->texCoords.push_back(glm::vec2(newX, newZ) * textureScale);
 		}
 	}
 }

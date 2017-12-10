@@ -58,8 +58,10 @@ void Skybox::draw(GLuint shaderProgram)
 	glm::mat4 modelview = view * toWorld;
 	uProjection = glGetUniformLocation(shaderProgram, "projection");
 	uModelview = glGetUniformLocation(shaderProgram, "view");
+	GLuint uModel = glGetUniformLocation(shaderProgram, "view");
 	// Now send these values to the shader program
 	glUniformMatrix4fv(uProjection, 1, GL_FALSE, &Window::P[0][0]);
+	glUniformMatrix4fv(uModel, 1, GL_FALSE, &toWorld[0][0]);
 	glUniformMatrix4fv(uModelview, 1, GL_FALSE, &modelview[0][0]);
 	// skybox cube
 	glBindVertexArray(skyVAO);

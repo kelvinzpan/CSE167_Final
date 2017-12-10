@@ -56,7 +56,7 @@ Geode* playerModel;
 
 // Procedural terrain parameters
 Terrain* Window::terrain;
-int Window::terrainSize = 100; // How detailed
+int Window::terrainSize = 500; // How detailed
 int Window::terrainSeed = -1; // If -1, use default seed
 GLint Window::terrainShaderProgram;
 #define TERRAIN_VERTEX_SHADER_PATH "terrain_toon_shader.vert"
@@ -195,7 +195,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 
 	if (height > 0)
 	{
-		P = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 1000.0f);
+		P = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 2000.0f);
 		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	}
 }

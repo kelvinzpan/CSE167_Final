@@ -15,9 +15,6 @@ const float modifier = 0.02;
 
 void main(void) {
 
-	//vec4 texColor = texture(textureTest, textureCoords);
-	//color = texColor;
-
 	vec2 ndc = (clipSpace.xy / clipSpace.w) / 2.0f + 0.5f;
 	vec2 refractCoords = vec2(ndc.x, ndc.y);
 	vec2 reflectCoords = vec2(ndc.x, -ndc.y);
@@ -43,4 +40,7 @@ void main(void) {
 	color = mix(colorReflect, colorRefract, refractiveFactor);
 	color = mix(color, vec4(0.0f, 0.3f, 0.5f, 1.0f), 0.2);
 
+
+	//vec4 texColor = texture(textureTest, textureCoords);
+	//color = texColor;
 }

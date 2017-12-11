@@ -73,6 +73,7 @@ int Window::randSeed;
 ParticleSpawn * testSpawner;
 Water * waterTest;
 
+GLuint clippingPlaneLoc;
 // Initialize all of our variables
 void Window::initialize_objects()
 {
@@ -112,6 +113,9 @@ void Window::initialize_objects()
 	std::cout << "Completed initialization of window objects." << std::endl;
 	waterTest = new Water();
 	testSpawner = new ParticleSpawn();
+
+	clippingPlaneLoc = glGetUniformLocation(skyboxShaderProgram, "clippingPlane");
+		
 }
 
 void Window::initialize_scene_graph()
@@ -224,17 +228,17 @@ void Window::display_callback(GLFWwindow* window)
 	//tutorial uses y, but z looks better/accurate
 	cam_pos.y -= distance;
 	invertPitch();
-	renderSceneClipping(0);	//0 is reflect, 1 is refract
+	renderSceneClippingReflect();	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
 	cam_pos.y += distance;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	invertPitch();
 
 	waterTest->bindRefractionBuffer();
-	renderSceneClipping(1);	//0 is reflect, 1 is refract
+	renderSceneClippingRefract(); 	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
 	glDisable(GL_CLIP_DISTANCE0);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -261,40 +265,24 @@ void Window::invertPitch()
 	cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);
 }
 
-void Window::renderSceneClipping(int mode)
+void Window::renderSceneClippingReflect()
 {
-	glm::vec4 plane = glm::vec4(0.0f, 0.0f, 0.0f, waterTest->waterHeight);
-	if (mode == 0) //reflect
-	{
-		plane.y = 1.0f;
-		plane.w = -waterTest->waterHeight;
-	}
-	else if(mode == 1)
-	{
-		plane.y = -1.0f;
-		plane.w = waterTest->waterHeight;
-	}
-	//commenting them out for now cause idk if its necessary to render them, also because it is not working lul
-
-	//if (!noTerrain)
-	//{
-	//	glUseProgram(terrainShaderProgram);
-	//	Window::terrain->draw(terrainShaderProgram, Window::C);
-	//	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
-	//}
-
-	//// Use the shader of programID
-	//glUseProgram(toonShaderProgram);
-	//world->draw(toonShaderProgram, Window::C);
-	//glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w );
-
-	//glUseProgram(particleShaderProgram);
-	//testSpawner->draw(particleShaderProgram, Window::C);
-
+	glm::vec4 plane = glm::vec4(0.0f, 1.0f, 0.0f, -0.0f);
+	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
-	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+	
+}
+
+void Window::renderSceneClippingRefract()
+{
+	glm::vec4 plane = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
+	// Skybox (MUST DRAW LAST)
+	glUseProgram(Window::skyboxShaderProgram);
+	Window::skybox->draw(Window::skyboxShaderProgram);
+	
 }
 
 void Window::renderScene()
@@ -302,22 +290,23 @@ void Window::renderScene()
 	if (!noTerrain)
 	{
 		glUseProgram(terrainShaderProgram);
-		Window::currTerrain->draw(terrainShaderProgram, Window::C);
 		glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+		Window::currTerrain->draw(terrainShaderProgram, Window::C);
 	}
 
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
-	world->draw(toonShaderProgram, Window::C);
 	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(particleShaderProgram);
 	testSpawner->draw(particleShaderProgram, Window::C);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
+	glUniform4f(clippingPlaneLoc, 0.0f, 0.0f, 0.0f, 10000000000.0f);
 	Window::skybox->draw(Window::skyboxShaderProgram);
-	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

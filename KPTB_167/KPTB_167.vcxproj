@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.hpp" />
     <ClInclude Include="Geode.h" />
     <ClInclude Include="Group.h" />
     <ClInclude Include="main.h" />

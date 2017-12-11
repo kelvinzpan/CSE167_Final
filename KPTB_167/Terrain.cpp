@@ -93,7 +93,7 @@ void Terrain::draw(GLuint program, glm::mat4 C)
 
 	glUniform3f(glGetUniformLocation(program, "light.light_color"), this->terrainLight.light_color.x, this->terrainLight.light_color.y, this->terrainLight.light_color.z);
 	glUniform3f(glGetUniformLocation(program, "light.light_dir"), this->terrainLight.light_dir.x, this->terrainLight.light_dir.y, this->terrainLight.light_dir.z);
-	glUniform3f(glGetUniformLocation(program, "camPos"), Window::cam_pos.x, Window::cam_pos.y, Window::cam_pos.z);
+	glUniform3f(glGetUniformLocation(program, "camPos"), Window::currCam->cam_pos.x, Window::currCam->cam_pos.y, Window::currCam->cam_pos.z);
 
 	glUniform1i(glGetUniformLocation(program, "useFlatColor"), Terrain::useFlatColor);
 	glUniform1f(glGetUniformLocation(program, "amp"), (float) AMP + AMP_OFFSET);

@@ -8,7 +8,7 @@ const double AMP = 169.0;
 const double AMP_OFFSET = 42.0;
 const int OCT = 4;
 
-const float SIZE = 2000.0f;
+float Terrain::SIZE = 2000.0f;
 
 std::vector<glm::vec3> COLORS = // Lowest to highest
 {
@@ -79,6 +79,37 @@ Terrain::~Terrain()
 void Terrain::swapColors()
 {
 	this->useFlatColor = !this->useFlatColor;
+}
+
+/*
+ * Called from outside of terrain to get the height at a given x, z.
+ */
+float Terrain::getRenderedHeight(float x, float z)
+{
+	// Convert to base int cooords
+	float realX = (x + SIZE / 2.0f) / SIZE * (this->gridSize - 1);
+	float realZ = (z + SIZE / 2.0f) / SIZE * (this->gridSize - 1);
+
+	int baseX = (int)realX;
+	int baseZ = (int)realZ;
+
+	if (baseX < 0 || baseX > this->gridSize - 1 || baseZ < 0 || baseZ > this->gridSize - 1) return 0.0f;
+
+	float xDiff = realX - baseX;
+	float zDiff = realZ - baseZ;
+
+	// Interpolate between 4 points
+	float lb = this->heights[baseZ][baseX];
+	float rb = this->heights[baseZ][baseX + 1];
+	float lt = this->heights[baseZ + 1][baseX];
+	float rt = this->heights[baseZ + 1][baseX + 1];
+
+	float b = lb + (rb - lb) * xDiff;
+	float t = lt + (rt - lt) * xDiff;
+
+	float h = b + (t - b) * zDiff;
+	
+	return h;
 }
 
 /*

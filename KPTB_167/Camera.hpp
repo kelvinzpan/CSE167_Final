@@ -28,7 +28,7 @@ public:
 		this->cam_pos = glm::vec3(0.0f, 0.0f, 0.0f);
 		this->cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
 		this->cam_look_dir = glm::vec3(1.0f, 0.0f, 0.0f);
-		this->cam_look_at = this->cam_pos + this->cam_look_dir;
+		this->cam_look_at = glm::vec3(1.0f, 0.0f, 0.0f);
 	};
 
 	void setLookDir(glm::vec3 look_dir)

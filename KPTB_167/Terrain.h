@@ -25,6 +25,7 @@ public:
 	int gridSize;
 	int seed;
 	bool useFlatColor;
+	static float SIZE;
 
 	std::vector<unsigned int> indices;
 	std::vector<glm::vec3> vertices;
@@ -46,6 +47,7 @@ public:
 
 	void draw(GLuint program, glm::mat4 C);
 	void swapColors();
+	float getRenderedHeight(float x, float z);
 	
 	std::vector<std::vector<float>> generateHeights(int gridSize, PerlinNoise * heightGen);
 	std::vector<unsigned int> generateIndices(int vertexCount);

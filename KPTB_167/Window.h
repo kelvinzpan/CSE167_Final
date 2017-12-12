@@ -72,6 +72,12 @@ public:
 	static float fpsYOffset;
 	static bool initCamera;
 	static void initializeCamera();
+	static float horizSens;
+	static float vertSens;
+
+	static float playerSpeed;
+	static void handleMovement();
+	static bool pressingW, pressingA, pressingS, pressingD;
 
 	static Terrain* currTerrain;
 	static Terrain* baseTerrain;

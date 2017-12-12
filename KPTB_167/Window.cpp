@@ -54,7 +54,11 @@ float Window::horizSens;
 float Window::vertSens;
 
 // Movement parameters
-float Window::playerSpeed = 0.5f;
+float Window::playerSpeed = 0.3f;
+float Window::playerSpeedNorm = 0.3f;
+float Window::playerSpeedUp = 0.6f;
+float Window::playerSpeedDown = 0.05f;
+bool Window::playerSpeeding = false;
 bool Window::pressingW = false;
 bool Window::pressingA = false;
 bool Window::pressingS = false;
@@ -343,6 +347,15 @@ void Window::handleMovement()
 {
 	if (Window::usingCharCam)
 	{
+		float yThreshold = -2.0f;
+		if (playerMT->newMat[3][1] < 0.0f)
+			Window::playerSpeed = Window::playerSpeedDown;
+		else
+			if (Window::playerSpeeding)
+				Window::playerSpeed = Window::playerSpeedUp;
+			else
+				Window::playerSpeed = Window::playerSpeedNorm;
+
 		if (Window::pressingW && keysPressed <= 2)
 		{
 			glm::vec3 xz = glm::normalize(Window::currCam->cam_look_dir);
@@ -355,7 +368,7 @@ void Window::handleMovement()
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
 
 			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
-			if (y < 0) y = 0;
+			if (y < yThreshold) y = yThreshold;
 			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
 			
@@ -373,7 +386,7 @@ void Window::handleMovement()
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
 
 			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
-			if (y < 0) y = 0;
+			if (y < yThreshold) y = yThreshold;
 			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
 
@@ -391,7 +404,7 @@ void Window::handleMovement()
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
 
 			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
-			if (y < 0) y = 0;
+			if (y < yThreshold) y = yThreshold;
 			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
 
@@ -409,7 +422,7 @@ void Window::handleMovement()
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
 
 			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
-			if (y < 0) y = 0;
+			if (y < yThreshold) y = yThreshold;
 			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
 			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
 
@@ -525,7 +538,7 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 
 		// Press to increase speed
 		case GLFW_KEY_LEFT_SHIFT:
-			Window::playerSpeed *= 3.0f;
+			Window::playerSpeeding = true;
 			break;
 		}
 		break; // End of GLFW_PRESS
@@ -556,9 +569,9 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			Window::pressingD = false;
 			keysPressed--;
 			break;
-		// Press to increase speed
+		// Release to return to normal speed
 		case GLFW_KEY_LEFT_SHIFT:
-			Window::playerSpeed /= 3.0f;
+			Window::playerSpeeding = false;
 			break;
 		}
 		break; // End of GLFW_RELEASE
@@ -645,6 +658,7 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 
 			glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis);
 			Window::currCam->cam_pos = glm::vec3(glm::vec4(Window::currCam->cam_pos, 1.0f) * rotateMat);
+			if (Window::currCam->cam_pos.y < 0.0f) Window::currCam->cam_pos.y = 0.0f;
 			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		}
 	}

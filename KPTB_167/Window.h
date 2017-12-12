@@ -75,6 +75,10 @@ public:
 	static float vertSens;
 
 	static float playerSpeed;
+	static float playerSpeedNorm;
+	static float playerSpeedUp;
+	static float playerSpeedDown;
+	static bool playerSpeeding;
 	static void handleMovement();
 	static bool pressingW, pressingA, pressingS, pressingD;
 

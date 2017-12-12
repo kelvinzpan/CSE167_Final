@@ -57,7 +57,6 @@ public:
 	static void renderScene();
 	static void renderSceneClippingReflect();
 	static void renderSceneClippingRefract();
-	static void invertPitch();
 
 	static Skybox* skybox;
 	static GLint skyboxShaderProgram;

@@ -263,10 +263,11 @@ void Window::display_callback(GLFWwindow* window)
 	float distance = 2 * (Window::currCam->cam_pos.y - waterTest->waterHeight);
 	//tutorial uses y, but z looks better/accurate
 	Window::currCam->cam_pos.y -= distance;
-	invertPitch();
+	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 	renderSceneClippingReflect();	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
 	Window::currCam->cam_pos.y += distance;
+	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -291,17 +292,6 @@ void Window::display_callback(GLFWwindow* window)
 	glfwPollEvents();
 	// Swap buffers
 	glfwSwapBuffers(window);
-}
-
-void Window::invertPitch()
-{
-	float pitch = glm::asin(Window::currCam->cam_look_at.y);
-	float yaw = glm::acos(Window::currCam->cam_look_at.x / glm::cos(pitch));
-	float invertPitch = -pitch;
-
-	/*Window::currCam->cam_look_at.x = glm::cos(invertPitch)*glm::cos(yaw);
-	Window::currCam->cam_look_at.y = glm::sin(invertPitch);
-	Window::currCam->cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);*/
 }
 
 void Window::renderSceneClippingReflect()

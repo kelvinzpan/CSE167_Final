@@ -35,6 +35,8 @@ public:
 	glm::vec3 maxCoord;
 	glm::vec3 minCoord;
 
+	bool dontDraw;
+
 	// These variables are needed for the shader program
 	GLuint VBO_v, VBO_n, VAO, EBO;
 	Material material;

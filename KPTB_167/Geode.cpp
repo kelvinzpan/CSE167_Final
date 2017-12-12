@@ -8,6 +8,8 @@ Geode::Geode(const char * filepath)
 	// Parse the obj file
 	parse(filepath);
 
+	this->dontDraw = false;
+
 	// Construct default material
 	material = {
 		glm::vec3(0.75164f, 0.60648f, 0.22648f), // color_diff
@@ -61,6 +63,8 @@ Geode::~Geode()
 
 void Geode::draw(GLuint program, glm::mat4 C)
 {
+	if (this->dontDraw) return;
+
 	// Calculate the combination of the model and view (camera inverse) matrices
 	glm::mat4 modelview = Window::V * C;
 	glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, &Window::P[0][0]);

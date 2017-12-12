@@ -54,7 +54,7 @@ float Window::horizSens;
 float Window::vertSens;
 
 // Movement parameters
-float Window::playerSpeed = 1.0f;
+float Window::playerSpeed = 0.5f;
 bool Window::pressingW = false;
 bool Window::pressingA = false;
 bool Window::pressingS = false;
@@ -141,6 +141,7 @@ void Window::initialize_scene_graph()
 	playerMT->addChild(playerModel);
 	playerModel->setParentMT(playerMT);
 	playerModel->initSize(15.0f, false);
+	playerModel->dontDraw = true; // We are initially in FPS mode
 
 	// Add more models here
 }
@@ -163,8 +164,8 @@ void Window::initializeCamera()
 		V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		Window::usingCharCam = true;
 
-		Window::horizSens = 0.8f;
-		Window::vertSens = 0.4f;
+		Window::horizSens = 0.05f;
+		Window::vertSens = 0.025f;
 
 		Window::initCamera = true;
 	}
@@ -301,7 +302,6 @@ void Window::renderSceneClippingReflect()
 	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
-	
 }
 
 void Window::renderSceneClippingRefract()
@@ -330,7 +330,7 @@ void Window::renderScene()
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(particleShaderProgram);
-	testSpawner->draw(particleShaderProgram, Window::C);
+	//testSpawner->draw(particleShaderProgram, Window::C);
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
@@ -483,6 +483,8 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 				Window::currCam = Window::worldCam;
 				V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 
+				playerModel->dontDraw = false;
+
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 			}
 			else
@@ -490,6 +492,8 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 				Window::usingCharCam = true;
 				Window::currCam = Window::charCam;
 				V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+
+				playerModel->dontDraw = true;
 
 				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 			}
@@ -518,6 +522,11 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			Window::pressingD = true;
 			keysPressed++;
 			break;
+
+		// Press to increase speed
+		case GLFW_KEY_LEFT_SHIFT:
+			Window::playerSpeed *= 3.0f;
+			break;
 		}
 		break; // End of GLFW_PRESS
 
@@ -530,22 +539,26 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			keysPressed--; 
 			break;
 
-			// A is left
+		// A is left
 		case GLFW_KEY_A:
 			Window::pressingA = false;
 			keysPressed--;
 			break;
 
-			// S is backwards
+		// S is backwards
 		case GLFW_KEY_S:
 			Window::pressingS = false;
 			keysPressed--;
 			break;
 
-			// D is right
+		// D is right
 		case GLFW_KEY_D:
 			Window::pressingD = false;
 			keysPressed--;
+			break;
+		// Press to increase speed
+		case GLFW_KEY_LEFT_SHIFT:
+			Window::playerSpeed /= 3.0f;
 			break;
 		}
 		break; // End of GLFW_RELEASE

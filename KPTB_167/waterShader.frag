@@ -26,21 +26,17 @@ void main(void) {
 	refractCoords += totalDistort;
 	refractCoords = clamp(refractCoords, 0.001, 0.999);
 	reflectCoords += totalDistort;
-	refractCoords.x = clamp(refractCoords.x, 0.001, 0.999);
-	refractCoords.y = clamp(refractCoords.x, -0.999, - 0.001);
+	reflectCoords.x = clamp(reflectCoords.x, 0.001, 0.999);
+	reflectCoords.y = clamp(reflectCoords.y, -0.999, - 0.001);
 
 	vec3 viewVec = normalize(toCamera);
 	float refractiveFactor = dot(viewVec, vec3(0.0f, 1.0f, 0.0f));
 	//change how reflective it is
-	refractiveFactor = pow(refractiveFactor, 2.0f);	
+	refractiveFactor = pow(refractiveFactor, 0.8f);	
 
 	vec4 colorReflect = texture(reflection, reflectCoords);
 	vec4 colorRefract = texture(refraction, refractCoords);
 
 	color = mix(colorReflect, colorRefract, refractiveFactor);
 	color = mix(color, vec4(0.0f, 0.3f, 0.5f, 1.0f), 0.2);
-
-
-	//vec4 texColor = texture(textureTest, textureCoords);
-	//color = texColor;
 }

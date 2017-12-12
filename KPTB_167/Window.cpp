@@ -108,11 +108,10 @@ void Window::initialize_objects()
 	terrainShaderProgram = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
 
 	// Set up particle effects
-	// testSpawner = new ParticleSpawn();
+	testSpawner = new ParticleSpawn();
 
 	std::cout << "Completed initialization of window objects." << std::endl;
 	waterTest = new Water();
-	testSpawner = new ParticleSpawn();
 
 	clippingPlaneLoc = glGetUniformLocation(skyboxShaderProgram, "clippingPlane");
 		
@@ -224,15 +223,17 @@ void Window::display_callback(GLFWwindow* window)
 	glEnable(GL_CLIP_DISTANCE0);
 
 	waterTest->bindReflectionBuffer();
-	float distance = 2 * (cam_pos.y - waterTest->waterHeight);
-	//tutorial uses y, but z looks better/accurate
+	float distance = 2 * cam_pos.y;
+	//tutorial uses y, but some uses z
 	cam_pos.y -= distance;
-	invertPitch();
+
+	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	renderSceneClippingReflect();	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
 	cam_pos.y += distance;
+	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	invertPitch();
+
 
 	waterTest->bindRefractionBuffer();
 	renderSceneClippingRefract(); 	//0 is reflect, 1 is refract
@@ -263,13 +264,15 @@ void Window::invertPitch()
 	cam_look_at.x = glm::cos(invertPitch)*glm::cos(yaw);
 	cam_look_at.y = glm::sin(invertPitch);
 	cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);
+
+	std::cout << cam_look_at.x << " " << cam_look_at.y << " " << cam_look_at.z << " " << std::endl;
 }
 
 void Window::renderSceneClippingReflect()
 {
-	glm::vec4 plane = glm::vec4(0.0f, 1.0f, 0.0f, -0.0f);
+	glm::vec4 plane = glm::vec4(0.0f, 1.0f, 0.0f, -0.02f);
+
 	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
-	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
 	
@@ -278,6 +281,7 @@ void Window::renderSceneClippingReflect()
 void Window::renderSceneClippingRefract()
 {
 	glm::vec4 plane = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+
 	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
@@ -304,7 +308,7 @@ void Window::renderScene()
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
-	glUniform4f(clippingPlaneLoc, 0.0f, 0.0f, 0.0f, 10000000000.0f);
+	glUniform4f(clippingPlaneLoc, 0.0f, 1.0f, 0.0f, 10000000000.0f);
 	Window::skybox->draw(Window::skyboxShaderProgram);
 
 }

@@ -27,6 +27,7 @@
 #include "ParticleSpawn.h"
 #include "Terrain.h"
 #include "Water.h"
+#include "Camera.hpp"
 
 class Window
 {
@@ -64,9 +65,19 @@ public:
 	static void initialize_scene_graph();
 	static glm::mat4 C;
 
-	static glm::vec3 cam_pos;
-	static glm::vec3 cam_look_at;
-	static glm::vec3 cam_up;
+	static Camera* currCam;
+	static Camera* charCam;
+	static Camera* worldCam;
+	static bool usingCharCam;
+	static float fpsYOffset;
+	static bool initCamera;
+	static void initializeCamera();
+	static float horizSens;
+	static float vertSens;
+
+	static float playerSpeed;
+	static void handleMovement();
+	static bool pressingW, pressingA, pressingS, pressingD;
 
 	static Terrain* currTerrain;
 	static Terrain* baseTerrain;

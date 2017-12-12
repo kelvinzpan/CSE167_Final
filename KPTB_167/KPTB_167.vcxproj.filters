@@ -12,10 +12,8 @@
     <ClCompile Include="Water.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ColorGen.hpp" />
     <ClInclude Include="Geode.h" />
     <ClInclude Include="Group.h" />
-    <ClInclude Include="HeightGen.hpp" />
     <ClInclude Include="main.h" />
     <ClInclude Include="MatrixTransform.h" />
     <ClInclude Include="Node.h" />
@@ -26,6 +24,8 @@
     <ClInclude Include="Terrain.h" />
     <ClInclude Include="Window.h" />
     <ClInclude Include="Water.h" />
+    <ClInclude Include="PerlinNoise.hpp" />
+    <ClInclude Include="Camera.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -39,5 +39,7 @@
     <None Include="waterShader.frag" />
     <None Include="particleShader.vert" />
     <None Include="particleShader.frag" />
+    <None Include="terrain_toon_shader.frag" />
+    <None Include="terrain_toon_shader.vert" />
   </ItemGroup>
 </Project>

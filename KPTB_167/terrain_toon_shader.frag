@@ -84,7 +84,7 @@ void main()
 
 	// Silhouette edges
 	float edge = max(0.0f, dot(N, E));
-	if (false) // Turned off silhouettes. Use edge < 0.01f to turn on.
+	if (edge < 0.2f) // Turned off silhouettes. Use edge < 0.01f to turn on.
 	{
 		color = vec4(0, 0, 0, 1);
 	}

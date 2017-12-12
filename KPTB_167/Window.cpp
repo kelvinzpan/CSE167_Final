@@ -43,10 +43,23 @@ GLint particleShaderProgram;
 #define PARTICLE_VERTEX_SHADER_PATH "particleShader.vert"
 #define PARTICLE_FRAGMENT_SHADER_PATH "particleShader.frag"
 
-// Default camera parameters
-glm::vec3 Window::cam_pos;
-glm::vec3 Window::cam_look_at;
-glm::vec3 Window::cam_up;
+// Setup camera objects for FPS view
+Camera* Window::charCam;
+Camera* Window::worldCam;
+Camera* Window::currCam;
+float Window::fpsYOffset;
+bool Window::usingCharCam;
+bool Window::initCamera = false;
+float Window::horizSens;
+float Window::vertSens;
+
+// Movement parameters
+float Window::playerSpeed = 1.0f;
+bool Window::pressingW = false;
+bool Window::pressingA = false;
+bool Window::pressingS = false;
+bool Window::pressingD = false;
+int keysPressed = 0;
 
 // Scene Graph parameters
 glm::mat4 Window::C;
@@ -74,14 +87,12 @@ ParticleSpawn * testSpawner;
 Water * waterTest;
 
 GLuint clippingPlaneLoc;
+
 // Initialize all of our variables
 void Window::initialize_objects()
 {
-	// Set up camera
-	Window::cam_pos = glm::vec3(0.0f, 0.0f, -40.0f);
-	Window::cam_look_at = glm::vec3(0.0f, 0.0f, 0.0f);
-	Window::cam_up = glm::vec3(0.0f, 1.0f, 0.0f);
-	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+	// Separate initialize camera because bugs
+	Window::initializeCamera();
 
 	// Load the shader program. Make sure you have the correct filepath up top
 	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
@@ -110,11 +121,11 @@ void Window::initialize_objects()
 	// Set up particle effects
 	testSpawner = new ParticleSpawn();
 
-	std::cout << "Completed initialization of window objects." << std::endl;
 	waterTest = new Water();
 
 	clippingPlaneLoc = glGetUniformLocation(skyboxShaderProgram, "clippingPlane");
 		
+	std::cout << "Completed initialization of window objects." << std::endl;
 }
 
 void Window::initialize_scene_graph()
@@ -131,8 +142,32 @@ void Window::initialize_scene_graph()
 	playerModel->setParentMT(playerMT);
 	playerModel->initSize(15.0f, false);
 
-	glm::mat4 test = glm::translate(glm::mat4(1.0f), glm::vec3(4.0f, 4.0f, 0.0f));
-	playerMT->translateOnce(test);
+	// Add more models here
+}
+
+void Window::initializeCamera()
+{
+	if (!Window::initCamera)
+	{
+		// Set up camera on character view
+		Window::charCam = new Camera();
+		Window::fpsYOffset = 7.0f;
+		Window::charCam->setPos(Window::charCam->cam_pos + glm::vec3(0.0f, Window::fpsYOffset, 0.0f));
+		Window::charCam->setLookDir(glm::vec3(1.0f, 0.0f, 0.0f));
+
+		Window::worldCam = new Camera(); // Manually set coords, don't use cam_look_dir
+		Window::worldCam->cam_pos = glm::vec3(-40.0f, 40.0f, 0.0f);
+		Window::worldCam->cam_look_at = glm::vec3(0.0f, 0.0f, 0.0f);
+
+		Window::currCam = Window::charCam;
+		V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		Window::usingCharCam = true;
+
+		Window::horizSens = 0.8f;
+		Window::vertSens = 0.4f;
+
+		Window::initCamera = true;
+	}
 }
 
 // Treat this as a destructor function. Delete dynamically allocated memory here.
@@ -207,12 +242,14 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 	if (height > 0)
 	{
 		P = glm::perspective(45.0f, (float)width / (float)height, 0.1f, 2000.0f);
-		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+		Window::initializeCamera();
+		V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 	}
 }
 
 void Window::idle_callback()
 {
+	Window::handleMovement();
 	world->update();
 }
 
@@ -223,15 +260,13 @@ void Window::display_callback(GLFWwindow* window)
 	glEnable(GL_CLIP_DISTANCE0);
 
 	waterTest->bindReflectionBuffer();
-	float distance = 2 * cam_pos.y;
-	//tutorial uses y, but some uses z
-	cam_pos.y -= distance;
-
-	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+	float distance = 2 * (Window::currCam->cam_pos.y - waterTest->waterHeight);
+	//tutorial uses y, but z looks better/accurate
+	Window::currCam->cam_pos.y -= distance;
+	invertPitch();
 	renderSceneClippingReflect();	//0 is reflect, 1 is refract
 	waterTest->unbindBuffer();
-	cam_pos.y += distance;
-	V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+	Window::currCam->cam_pos.y += distance;
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 
@@ -249,6 +284,9 @@ void Window::display_callback(GLFWwindow* window)
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	renderScene();
 
+	//std::cout << "Curr cam pos: (" << Window::currCam->cam_pos.x << ", " << Window::currCam->cam_pos.y << ", " << Window::currCam->cam_pos.z << ")" << std::endl;
+	//std::cout << "Curr cam look at: (" << Window::currCam->cam_look_at.x << ", " << Window::currCam->cam_look_at.y << ", " << Window::currCam->cam_look_at.z << ")" << std::endl;
+
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
 	// Swap buffers
@@ -257,15 +295,13 @@ void Window::display_callback(GLFWwindow* window)
 
 void Window::invertPitch()
 {
-	float pitch = glm::asin(cam_look_at.y);
-	float yaw = glm::acos(cam_look_at.x / glm::cos(pitch));
+	float pitch = glm::asin(Window::currCam->cam_look_at.y);
+	float yaw = glm::acos(Window::currCam->cam_look_at.x / glm::cos(pitch));
 	float invertPitch = -pitch;
 
-	cam_look_at.x = glm::cos(invertPitch)*glm::cos(yaw);
-	cam_look_at.y = glm::sin(invertPitch);
-	cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);
-
-	std::cout << cam_look_at.x << " " << cam_look_at.y << " " << cam_look_at.z << " " << std::endl;
+	/*Window::currCam->cam_look_at.x = glm::cos(invertPitch)*glm::cos(yaw);
+	Window::currCam->cam_look_at.y = glm::sin(invertPitch);
+	Window::currCam->cam_look_at.z = glm::cos(invertPitch)*glm::sin(yaw);*/
 }
 
 void Window::renderSceneClippingReflect()
@@ -313,6 +349,85 @@ void Window::renderScene()
 
 }
 
+void Window::handleMovement()
+{
+	if (Window::usingCharCam)
+	{
+		if (Window::pressingW && keysPressed <= 2)
+		{
+			glm::vec3 xz = glm::normalize(Window::currCam->cam_look_dir);
+			float limit = Window::currTerrain->SIZE / 2.0f;
+			if (playerMT->newMat[3][0] + xz.x <= -limit || playerMT->newMat[3][0] + xz.x >= limit) xz.x = 0;
+			if (playerMT->newMat[3][2] + xz.z <= -limit || playerMT->newMat[3][2] + xz.z >= limit) xz.z = 0;
+
+			glm::mat4 movement = glm::translate(glm::mat4(1.0f), glm::vec3(xz.x, 0, xz.z) * Window::playerSpeed);
+			playerMT->translateOnce(movement);
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
+
+			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
+			if (y < 0) y = 0;
+			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
+			
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		}
+		if (Window::pressingA && keysPressed <= 2)
+		{
+			glm::vec3 xz = glm::normalize(-glm::cross(Window::currCam->cam_look_dir, Window::currCam->cam_up));
+			float limit = Window::currTerrain->SIZE / 2.0f;
+			if (playerMT->newMat[3][0] + xz.x <= -limit || playerMT->newMat[3][0] + xz.x >= limit) xz.x = 0;
+			if (playerMT->newMat[3][2] + xz.z <= -limit || playerMT->newMat[3][2] + xz.z >= limit) xz.z = 0;
+
+			glm::mat4 movement = glm::translate(glm::mat4(1.0f), glm::vec3(xz.x, 0, xz.z) * Window::playerSpeed);
+			playerMT->translateOnce(movement);
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
+
+			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
+			if (y < 0) y = 0;
+			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
+
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		}
+		if (Window::pressingS && keysPressed <= 2)
+		{
+			glm::vec3 xz = glm::normalize(-Window::currCam->cam_look_dir);
+			float limit = Window::currTerrain->SIZE / 2.0f;
+			if (playerMT->newMat[3][0] + xz.x <= -limit || playerMT->newMat[3][0] + xz.x >= limit) xz.x = 0;
+			if (playerMT->newMat[3][2] + xz.z <= -limit || playerMT->newMat[3][2] + xz.z >= limit) xz.z = 0;
+
+			glm::mat4 movement = glm::translate(glm::mat4(1.0f), glm::vec3(xz.x, 0, xz.z) * Window::playerSpeed);
+			playerMT->translateOnce(movement);
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
+
+			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
+			if (y < 0) y = 0;
+			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
+
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		}
+		if (Window::pressingD && keysPressed <= 2)
+		{
+			glm::vec3 xz = glm::normalize(glm::cross(Window::currCam->cam_look_dir, Window::currCam->cam_up));
+			float limit = Window::currTerrain->SIZE / 2.0f;
+			if (playerMT->newMat[3][0] + xz.x <= -limit || playerMT->newMat[3][0] + xz.x >= limit) xz.x = 0;
+			if (playerMT->newMat[3][2] + xz.z <= -limit || playerMT->newMat[3][2] + xz.z >= limit) xz.z = 0;
+
+			glm::mat4 movement = glm::translate(glm::mat4(1.0f), glm::vec3(xz.x, 0, xz.z) * Window::playerSpeed);
+			playerMT->translateOnce(movement);
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1], playerMT->newMat[3][2]));
+
+			float y = Window::currTerrain->getRenderedHeight(Window::currCam->cam_pos.x, Window::currCam->cam_pos.z);
+			if (y < 0) y = 0;
+			playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, y - Window::currCam->cam_pos.y, 0.0f)));
+			Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
+
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		}
+	}
+}
+
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
 	// Check for a key press
@@ -354,17 +469,96 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 			Window::currTerrain->swapColors();
 			break;
 
-		// Toggle particle count
+		// Toggle particle effects AND particle count
 		case GLFW_KEY_P:
 			Window::showParticleCount = !Window::showParticleCount;
+			// TODO PARTICLE TOGGLE
 			break;
 
 		// Toggle rendering terrain
 		case GLFW_KEY_N:
 			Window::noTerrain = !Window::noTerrain;
 			break;
+
+		// Toggle rendering water
+		case GLFW_KEY_L:
+			// TODO WATER TOGGLE
+			break;
+
+		// Toggle FPS camera locked to character
+		case GLFW_KEY_C:
+			if (Window::usingCharCam)
+			{
+				Window::usingCharCam = false;
+				Window::currCam = Window::worldCam;
+				V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+			}
+			else
+			{
+				Window::usingCharCam = true;
+				Window::currCam = Window::charCam;
+				V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+
+				glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+			}
+			break;
+
+		// WASD movement, W is forward
+		case GLFW_KEY_W:
+			Window::pressingW = true;
+			keysPressed++;
+			break;
+
+		// A is left
+		case GLFW_KEY_A:
+			Window::pressingA = true;
+			keysPressed++;
+			break;
+
+		// S is backwards
+		case GLFW_KEY_S:
+			Window::pressingS = true;
+			keysPressed++;
+			break;
+
+		// D is right
+		case GLFW_KEY_D:
+			Window::pressingD = true;
+			keysPressed++;
+			break;
 		}
 		break; // End of GLFW_PRESS
+
+	case GLFW_RELEASE:
+		switch (key)
+		{
+		// WASD movement, W is forward
+		case GLFW_KEY_W:
+			Window::pressingW = false;
+			keysPressed--; 
+			break;
+
+			// A is left
+		case GLFW_KEY_A:
+			Window::pressingA = false;
+			keysPressed--;
+			break;
+
+			// S is backwards
+		case GLFW_KEY_S:
+			Window::pressingS = false;
+			keysPressed--;
+			break;
+
+			// D is right
+		case GLFW_KEY_D:
+			Window::pressingD = false;
+			keysPressed--;
+			break;
+		}
+		break; // End of GLFW_RELEASE
 	}
 }
 
@@ -409,7 +603,31 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 
 void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	if (Window::pressMouseLeft)
+	if (Window::usingCharCam) // FPS camera when using char cam
+	{
+		// Change cam_look_dir based on mouse movement, use trackball rotate
+		glm::vec3 prevPos = trackballMap(glm::vec3(Window::mousePosX, Window::mousePosY, 0));
+		glm::vec3 newPos = trackballMap(glm::vec3(xpos, ypos, 0));
+		glm::vec3 direction = newPos - prevPos;
+		float velocity = (float)direction.length();
+		if (velocity > 0.001f) // Ignore small changes
+		{
+			// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
+			glm::vec3 rotAxis = glm::vec4(glm::cross(prevPos, newPos), 0.0f) * V;
+			float rotAngle = velocity * 0.05f;
+
+			glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis);
+			glm::vec3 lookIncrement = glm::normalize(glm::vec3(glm::vec4(Window::currCam->cam_look_dir, 0.0f) * rotateMat) - Window::currCam->cam_look_dir);
+
+			glm::vec3 newLookDir = glm::vec3(Window::currCam->cam_look_dir.x + lookIncrement.x * Window::horizSens,
+				Window::currCam->cam_look_dir.y + lookIncrement.y * Window::vertSens,
+				Window::currCam->cam_look_dir.z + lookIncrement.z * Window::horizSens);
+
+			Window::currCam->setLookDir( newLookDir );
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		}
+	}
+	else if (!Window::usingCharCam && Window::pressMouseLeft) // Only trackball rotate using world cam
 	{
 		// Trackball rotate by cursor movement
 		glm::vec3 prevPos = trackballMap(glm::vec3(Window::mousePosX, Window::mousePosY, 0));
@@ -420,22 +638,16 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		{
 			// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
 			glm::vec3 rotAxis = glm::vec4(glm::cross(prevPos, newPos), 0.0f) * V;
-			float rotAngle = velocity * 0.03f;
+			float rotAngle = velocity * 0.05f;
 
 			glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis);
-			Window::cam_pos = glm::vec3(glm::vec4(Window::cam_pos, 1.0f) * rotateMat);
-			V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+			Window::currCam->cam_pos = glm::vec3(glm::vec4(Window::currCam->cam_pos, 1.0f) * rotateMat);
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		}
 	}
-	if (Window::pressMouseRight)
-	{
-		// Not necessary
-	}
-	if (Window::pressMouseLeft || Window::pressMouseRight)
-	{
-		Window::mousePosX = xpos;
-		Window::mousePosY = ypos;
-	}
+
+	Window::mousePosX = xpos;
+	Window::mousePosY = ypos;
 }
 
 // Helper function used to rotate in cursor_pos_callback
@@ -458,29 +670,37 @@ void Window::scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	if (yoffset > 0)
 	{
 		// Scrolling up
-		std::cout << "Scrolling up, zooming in." << std::endl;
-		glm::vec3 currDir = glm::normalize(Window::cam_pos) * 5.0f;
-		if (Window::cam_pos.x - currDir.x == 0.0f && Window::cam_pos.y - currDir.y == 0.0f && Window::cam_pos.z - currDir.z == 0.0f)
+
+		if (!Window::usingCharCam) // Zoom only on world cam
 		{
-			return;
+			std::cout << "Scrolling up, zooming in." << std::endl;
+			glm::vec3 currDir = glm::normalize(Window::currCam->cam_pos) * 5.0f;
+			if (Window::currCam->cam_pos.x - currDir.x == 0.0f && Window::currCam->cam_pos.y - currDir.y == 0.0f && Window::currCam->cam_pos.z - currDir.z == 0.0f)
+			{
+				return;
+			}
+			glm::vec3 new_cam_pos = Window::currCam->cam_pos - currDir;
+			if (glm::dot(new_cam_pos, Window::currCam->cam_pos) == 1)
+			{
+				return;
+			}
+			Window::currCam->cam_pos = new_cam_pos;
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		}
-		glm::vec3 new_cam_pos = Window::cam_pos - currDir;
-		if (glm::dot(new_cam_pos, Window::cam_pos) == 1)
-		{
-			return;
-		}
-		Window::cam_pos = new_cam_pos;
-		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
 	}
 	else if (yoffset < 0)
 	{
 		// Scrolling down
-		std::cout << "Scrolling down, zooming out." << std::endl;
-		glm::vec3 currDir = glm::normalize(Window::cam_pos) * 5.0f;
-		float newX = Window::cam_pos.x + currDir.x;
-		float newY = Window::cam_pos.y + currDir.y;
-		float newZ = Window::cam_pos.z + currDir.z;
-		Window::cam_pos = Window::cam_pos + currDir;
-		V = glm::lookAt(Window::cam_pos, Window::cam_look_at, Window::cam_up);
+
+		if (!Window::usingCharCam) // Zoom only on world cam
+		{
+			std::cout << "Scrolling down, zooming out." << std::endl;
+			glm::vec3 currDir = glm::normalize(Window::currCam->cam_pos) * 5.0f;
+			float newX = Window::currCam->cam_pos.x + currDir.x;
+			float newY = Window::currCam->cam_pos.y + currDir.y;
+			float newZ = Window::currCam->cam_pos.z + currDir.z;
+			Window::currCam->cam_pos = Window::currCam->cam_pos + currDir;
+			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+		}
 	}
 }

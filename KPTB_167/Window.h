@@ -48,6 +48,7 @@ public:
 	static bool pressMouseRight;
 	static bool showParticleCount;
 	static bool noTerrain;
+	static bool noWater;
 	static double mousePosX;
 	static double mousePosY;
 	static void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);

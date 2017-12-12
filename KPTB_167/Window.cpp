@@ -20,6 +20,7 @@ bool Window::pressMouseLeft = false;
 bool Window::pressMouseRight = false;
 bool Window::showParticleCount = false;
 bool Window::noTerrain = false;
+bool Window::noWater = false;
 double Window::mousePosX = 0.0;
 double Window::mousePosY = 0.0;
 
@@ -260,34 +261,10 @@ void Window::display_callback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CLIP_DISTANCE0);
 
-	waterTest->bindReflectionBuffer();
-	float distance = 2 * (Window::currCam->cam_pos.y - waterTest->waterHeight);
-	//tutorial uses y, but z looks better/accurate
-	Window::currCam->cam_pos.y -= distance;
-	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
-	renderSceneClippingReflect();	//0 is reflect, 1 is refract
-	waterTest->unbindBuffer();
-	Window::currCam->cam_pos.y += distance;
-	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	renderSceneClippingReflect();	
+	renderSceneClippingRefract(); 	
 
-
-	waterTest->bindRefractionBuffer();
-	renderSceneClippingRefract(); 	//0 is reflect, 1 is refract
-	waterTest->unbindBuffer();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	
-	glDisable(GL_CLIP_DISTANCE0);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glUseProgram(waterShaderProgram);
-	waterTest->draw(waterShaderProgram, Window::C);
-	glDisable(GL_BLEND);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	renderScene();
-
-	//std::cout << "Curr cam pos: (" << Window::currCam->cam_pos.x << ", " << Window::currCam->cam_pos.y << ", " << Window::currCam->cam_pos.z << ")" << std::endl;
-	//std::cout << "Curr cam look at: (" << Window::currCam->cam_look_at.x << ", " << Window::currCam->cam_look_at.y << ", " << Window::currCam->cam_look_at.z << ")" << std::endl;
 
 	// Gets events, including input such as keyboard and mouse or window resizing
 	glfwPollEvents();
@@ -297,22 +274,35 @@ void Window::display_callback(GLFWwindow* window)
 
 void Window::renderSceneClippingReflect()
 {
-	glm::vec4 plane = glm::vec4(0.0f, 1.0f, 0.0f, -0.02f);
+	waterTest->bindReflectionBuffer();
+	float distance = 2 * (Window::currCam->cam_pos.y - waterTest->waterHeight);
+	//tutorial uses y, but z looks better/accurate
+	Window::currCam->cam_pos.y -= distance;
+	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 
+	glm::vec4 plane = glm::vec4(0.0f, 1.0f, 0.0f, -0.02f);
 	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
+
+	waterTest->unbindBuffer();
+	Window::currCam->cam_pos.y += distance;
+	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Window::renderSceneClippingRefract()
 {
-	glm::vec4 plane = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+	waterTest->bindRefractionBuffer();
 
+	glm::vec4 plane = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
 	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
 	
+	waterTest->unbindBuffer();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void Window::renderScene()
@@ -330,13 +320,25 @@ void Window::renderScene()
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(particleShaderProgram);
-	//testSpawner->draw(particleShaderProgram, Window::C);
+	testSpawner->draw(particleShaderProgram, Window::C);
+
+	if (!noWater)
+	{
+		glDisable(GL_CLIP_DISTANCE0);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glUseProgram(waterShaderProgram);
+		waterTest->draw(waterShaderProgram, Window::C);
+
+		glDisable(GL_BLEND);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	glUniform4f(clippingPlaneLoc, 0.0f, 1.0f, 0.0f, 10000000000.0f);
 	Window::skybox->draw(Window::skyboxShaderProgram);
-
 }
 
 void Window::handleMovement()
@@ -472,7 +474,7 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 
 		// Toggle rendering water
 		case GLFW_KEY_L:
-			// TODO WATER TOGGLE
+			Window::noWater = !Window::noWater;
 			break;
 
 		// Toggle FPS camera locked to character

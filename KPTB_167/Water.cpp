@@ -86,7 +86,7 @@ void Water::initializeFrameBuffers()
 void Water::draw(GLuint shader, glm::mat4 c)
 {
 	toWorld = c;
-	float size = 2400;
+	float size = 2000;
 	toWorld = toWorld * glm::scale(glm::mat4(1.0f), glm::vec3(size, size, size));
 	toWorld = glm::translate(glm::mat4(1.0f), glm::vec3(-size / 2, 0, -size / 2)) * toWorld;
 	shaderProgram = shader;

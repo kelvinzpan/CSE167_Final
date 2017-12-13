@@ -55,10 +55,10 @@ float Window::horizSens;
 float Window::vertSens;
 
 // Movement parameters
-float Window::playerSpeed = 0.3f;
-float Window::playerSpeedNorm = 0.3f;
-float Window::playerSpeedUp = 0.6f;
-float Window::playerSpeedDown = 0.17f;
+float Window::playerSpeed = 0.9f;
+float Window::playerSpeedNorm = 0.9f;
+float Window::playerSpeedUp = 1.8f;
+float Window::playerSpeedDown = 0.45f;
 bool Window::playerSpeeding = false;
 bool Window::pressingW = false;
 bool Window::pressingA = false;
@@ -81,7 +81,7 @@ Geode* gullModel;
 GullSpawner* Window::gullSpawner;
 int Window::gullCount = 50;
 float Window::gullHeight = 175.0f;
-float Window::gullSpeed = 0.5f;
+float Window::gullSpeed = 1.5f;
 
 Group* test;
 MatrixTransform* testMT;
@@ -112,6 +112,7 @@ int Window::highScore;
 bool Window::playerDamaged;
 int Window::currDamageFrames;
 int Window::maxDamageFrames;
+float Window::hurtDist;
 
 // Initialize all of our variables
 void Window::initialize_objects()
@@ -156,6 +157,7 @@ void Window::initialize_objects()
 	Window::playerDamaged = false;
 	Window::currDamageFrames = 0;
 	Window::maxDamageFrames = 60;
+	Window::hurtDist = 5.0f;
 		
 	std::cout << "Completed initialization of window objects." << std::endl;
 }
@@ -313,6 +315,22 @@ void Window::idle_callback()
 	Window::handleMovement();
 	Window::gullSpawner->moveGulls();
 
+	// Check if the player is near any of the beams (right under a gull)
+	glm::vec2 playerPos = glm::vec2(playerMT->newMat[3][0], playerMT->newMat[3][2]);
+	for (int i = 0; i < Window::gullSpawner->count; i++)
+	{
+		MatrixTransform* currG = Window::gullSpawner->flock[i];
+		glm::vec2 currGPos = glm::vec2(currG->newMat[3][0], currG->newMat[3][2]);
+
+		if (glm::length(currGPos - playerPos) < Window::hurtDist)
+		{
+			 Window::damagePlayer();
+			/*std::cout << "Player: (" << playerPos.x << ", " << playerPos.y << ")" << std::endl;
+			std::cout << "Gull: (" << currGPos.x << ", " << currGPos.y << ")" << std::endl;
+			std::cout << glm::length(currGPos - playerPos) << std::endl;*/
+		}
+	}
+
 	world->update();
 }
 
@@ -339,11 +357,10 @@ void Window::display_callback(GLFWwindow* window)
 		renderSceneClippingRefract();
 
 		renderScene();
-
-		// Gets events, including input such as keyboard and mouse or window resizing
-		glfwPollEvents();
 	}
 
+	// Gets events, including input such as keyboard and mouse or window resizing
+	glfwPollEvents();
 	// Swap buffers
 	glfwSwapBuffers(window);
 }
@@ -720,7 +737,7 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		glm::vec3 prevPos = trackballMap(glm::vec3(Window::mousePosX, Window::mousePosY, 0));
 		glm::vec3 newPos = trackballMap(glm::vec3(xpos, ypos, 0));
 		glm::vec3 direction = newPos - prevPos;
-		float velocity = (float)direction.length();
+		float velocity = (float)glm::length(direction);
 		if (velocity > 0.001f) // Ignore small changes
 		{
 			// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
@@ -744,7 +761,7 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		glm::vec3 prevPos = trackballMap(glm::vec3(Window::mousePosX, Window::mousePosY, 0));
 		glm::vec3 newPos = trackballMap(glm::vec3(xpos, ypos, 0));
 		glm::vec3 direction = newPos - prevPos;
-		float velocity = (float)direction.length();
+		float velocity = glm::length(direction);
 		if (velocity > 0.001f) // Ignore small changes
 		{
 			// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
@@ -770,7 +787,7 @@ glm::vec3 Window::trackballMap(glm::vec3 mouse)
 	v.x = (2.0f * mouse.x - Window::width) / Window::width;
 	v.y = (Window::height - 2.0f * mouse.y) / Window::height;
 	v.z = 0.0f;
-	d = (float)v.length();
+	d = glm::length(v);
 	d = (d < 1.0f) ? d : 1.0f;
 	v.z = sqrtf(1.001f - d*d);
 	glm::normalize(v);

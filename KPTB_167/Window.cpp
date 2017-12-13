@@ -55,10 +55,10 @@ float Window::horizSens;
 float Window::vertSens;
 
 // Movement parameters
-float Window::playerSpeed = 0.9f;
-float Window::playerSpeedNorm = 0.9f;
-float Window::playerSpeedUp = 1.8f;
-float Window::playerSpeedDown = 0.45f;
+float Window::playerSpeedNorm = 0.8f;
+float Window::playerSpeedUp = 1.6f;
+float Window::playerSpeedDown = 0.4f;
+float Window::playerSpeed = Window::playerSpeedNorm;
 bool Window::playerSpeeding = false;
 bool Window::pressingW = false;
 bool Window::pressingA = false;
@@ -81,7 +81,7 @@ Geode* gullModel;
 GullSpawner* Window::gullSpawner;
 int Window::gullCount = 50;
 float Window::gullHeight = 175.0f;
-float Window::gullSpeed = 1.5f;
+float Window::gullSpeed = 1.0f;
 
 Group* test;
 MatrixTransform* testMT;
@@ -161,10 +161,10 @@ void Window::initialize_objects()
 	Window::playerDamaged = false;
 	Window::currDamageFrames = 0;
 	Window::maxDamageFrames = 60;
-	Window::hurtDist = 5.0f;
 	Window::currInvinFrames = 0;
 	Window::maxInvinFrames = 360;
 	Window::playerInvin = false;
+	Window::hurtDist = 30.0f;
 		
 	std::cout << "Completed initialization of window objects." << std::endl;
 }
@@ -178,7 +178,7 @@ void Window::initialize_scene_graph()
 	world->addChild(player);
 	playerMT = new MatrixTransform();
 	player->addChild(playerMT);
-	playerModel = new Geode("res/objects/cat.obj");
+	playerModel = new Geode("res/objects/rat.obj");
 	playerMT->addChild(playerModel);
 	playerModel->setParentMT(playerMT);
 	playerModel->setParticleEffect(1);	//set this with fire / explosion numbers
@@ -236,7 +236,7 @@ void Window::initializeCamera()
 		V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		Window::usingCharCam = true;
 
-		Window::horizSens = 0.02f;
+		Window::horizSens = 0.04f;
 		Window::vertSens = 0.01f;
 
 		Window::initCamera = true;
@@ -539,6 +539,8 @@ void Window::handleMovement()
 
 void Window::damagePlayer()
 {
+	if (Window::playerInvin || Window::currScore < 20) return;
+
 	Window::playerDamaged = true;
 	Window::highScore = std::max(Window::highScore, Window::currScore);
 	
@@ -758,7 +760,7 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		{
 			// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
 			glm::vec3 rotAxis = glm::vec4(glm::cross(prevPos, newPos), 0.0f) * V;
-			float rotAngle = velocity * 0.05f;
+			float rotAngle = velocity;
 
 			glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis);
 			glm::vec3 lookIncrement = glm::normalize(glm::vec3(glm::vec4(Window::currCam->cam_look_dir, 0.0f) * rotateMat) - Window::currCam->cam_look_dir);
@@ -782,7 +784,7 @@ void Window::cursor_pos_callback(GLFWwindow* window, double xpos, double ypos)
 		{
 			// Rotate about the axis that is perpendicular to the great circle connecting the mouse movements
 			glm::vec3 rotAxis = glm::vec4(glm::cross(prevPos, newPos), 0.0f) * V;
-			float rotAngle = velocity * 0.05f;
+			float rotAngle = velocity;
 
 			glm::mat4 rotateMat = glm::rotate(glm::mat4(1.0f), rotAngle, rotAxis);
 			Window::currCam->cam_pos = glm::vec3(glm::vec4(Window::currCam->cam_pos, 1.0f) * rotateMat);

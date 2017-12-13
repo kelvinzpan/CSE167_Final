@@ -45,18 +45,17 @@ void ParticleSpawn::setParticleType(int type)
 	if (type == 1)
 	{
 		isFire = true;
-		spawnRate = 450.0f;
-		maindir = glm::vec3(2.0f, 45.0f, 0.0f);
+		spawnRate = 200.0f;
+		maindir = glm::vec3(0.0f, 3.0f, 0.0f);
 		updateX = rand() % 10 / 10.0f ; //could use some work
 		updateZ = rand() % 10 / 10.0f ; //could use some work
-		updateY = 30.0f;
+		updateY = 2.0f;
 		spread = 1.0f;
 		lifeLength = 3.0f;
 	}
 	else if(type == 2)
 	{
 		isExplosion = true;
-		particleCount = maxParticles;
 		maindir = glm::vec3(0.0f, 1.0f, 0.0f);
 		updateX = rand() % 10 / 10.0f + 0.2f; //could use some work
 		updateZ = rand() % 10 / 10.0f + 0.2f; //could use some work
@@ -80,7 +79,8 @@ void ParticleSpawn::setParticleType(int type)
 void ParticleSpawn::generateOneTime(int newparticles)
 {
 	int negativeCounter = 0;
-
+	lastUsed = 0;
+	particleCount = maxParticles;
 	for (int i = 0; i < newparticles; i++)
 	{
 		pContainer[i]->life = lifeLength + ((double)rand() / (RAND_MAX - 1)) - 0.7;

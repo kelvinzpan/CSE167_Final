@@ -416,7 +416,7 @@ void Window::renderScene()
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(Window::particleShaderProgram);
-	testSpawner->draw(Window::particleShaderProgram, Window::C);
+	testSpawner->draw(Window::particleShaderProgram, playerMT->newMat);
 
 	if (!noWater)
 	{
@@ -541,6 +541,7 @@ void Window::damagePlayer()
 	//V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 
 	// TODO Explosion animation on hurt
+	testSpawner->generateOneTime(testSpawner->maxParticles);
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)

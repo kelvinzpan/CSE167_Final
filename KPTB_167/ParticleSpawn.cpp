@@ -56,6 +56,7 @@ void ParticleSpawn::setParticleType(int type)
 	else if(type == 2)
 	{
 		isExplosion = true;
+		particleCount = maxParticles;
 		maindir = glm::vec3(0.0f, 1.0f, 0.0f);
 		updateX = rand() % 10 / 10.0f + 0.2f; //could use some work
 		updateZ = rand() % 10 / 10.0f + 0.2f; //could use some work
@@ -315,7 +316,10 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 		generateParticles(newparticles);
 	}
 
-	int particleCount = 0;
+	if (particleCount == 0 && isExplosion)
+		return;
+
+	particleCount = 0;
 	updateLiveParticles(delta);
 	SortParticles();
 

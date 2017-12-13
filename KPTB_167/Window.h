@@ -97,6 +97,7 @@ public:
 	static GLint terrainShaderProgram;
 	static int terrainSize;
 	static int terrainSeed;
+	static GLint particleShaderProgram;
 };
 
 #endif

@@ -89,6 +89,13 @@ public:
 	static float gullHeight;
 	static float gullSpeed;
 
+	static int currScore;
+	static int highScore;
+	static bool playerDamaged;
+	static int currDamageFrames;
+	static int maxDamageFrames;
+	static void damagePlayer();
+
 	static Terrain* currTerrain;
 	static Terrain* baseTerrain;
 	static Terrain* randTerrain;

@@ -58,7 +58,7 @@ float Window::vertSens;
 float Window::playerSpeed = 0.3f;
 float Window::playerSpeedNorm = 0.3f;
 float Window::playerSpeedUp = 0.6f;
-float Window::playerSpeedDown = 0.05f;
+float Window::playerSpeedDown = 0.17f;
 bool Window::playerSpeeding = false;
 bool Window::pressingW = false;
 bool Window::pressingA = false;

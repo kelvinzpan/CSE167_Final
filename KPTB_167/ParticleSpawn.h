@@ -61,7 +61,7 @@ public:
 	GLuint VAO, VBO;
 	GLuint textureID;
 	GLint shaderProgram;
-	const int maxParticles = 1000;
+	const int maxParticles = 3000;
 	int particleCount = 0;
 	int lastUsed = 0;
 	double beginTime;
@@ -72,13 +72,16 @@ public:
 	float updateX;
 	float updateY;
 	float updateZ;
+	float spread;
 	float lifeLength;
 	bool isFire;
+	bool isRevFire;
 	bool isExplosion;
+	bool showParticleCount;
 
 	std::vector<Particle*> pContainer;
-	GLfloat particle_pos[4 * 500];
-	GLubyte particle_color[4 * 500];
+	GLfloat particle_pos[4 * 3000];
+	GLubyte particle_color[4 * 3000];
 
 };
 

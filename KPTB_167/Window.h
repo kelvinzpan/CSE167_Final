@@ -95,6 +95,7 @@ public:
 	static int currDamageFrames;
 	static int maxDamageFrames;
 	static void damagePlayer();
+	static float hurtDist;
 
 	static Terrain* currTerrain;
 	static Terrain* baseTerrain;

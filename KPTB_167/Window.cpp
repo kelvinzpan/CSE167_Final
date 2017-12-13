@@ -74,6 +74,15 @@ Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
 
+Group* gullGroup;
+Group* gull;
+MatrixTransform* gullMT;
+Geode* gullModel;
+GullSpawner* Window::gullSpawner;
+int Window::gullCount = 50;
+float Window::gullHeight = 175.0f;
+float Window::gullSpeed = 0.5f;
+
 Group* test;
 MatrixTransform* testMT;
 Geode* testModel;
@@ -116,9 +125,6 @@ void Window::initialize_objects()
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
 
-	// Set up scene graph
-	initialize_scene_graph();
-
 	// Set up terrain
 	Window::baseTerrain = new Terrain(Window::terrainSize, Window::terrainSeed);
 	srand(time(0));
@@ -133,6 +139,9 @@ void Window::initialize_objects()
 	waterTest = new Water();
 
 	clippingPlaneLoc = glGetUniformLocation(skyboxShaderProgram, "clippingPlane");
+
+	// Set up scene graph
+	initialize_scene_graph();
 		
 	std::cout << "Completed initialization of window objects." << std::endl;
 }
@@ -151,6 +160,23 @@ void Window::initialize_scene_graph()
 	playerModel->setParentMT(playerMT);
 	playerModel->initSize(15.0f, false);
 	playerModel->dontDraw = true; // We are initially in FPS mode
+
+	gullGroup = new Group();
+	world->addChild(gullGroup);
+	gull = new Group(); // Only render one gull
+	gullMT = new MatrixTransform();
+	gullModel = new Geode("res/objects/gull.obj");
+	gull->addChild(gullMT);
+	gullMT->addChild(gullModel);
+	gullModel->setParentMT(gullMT);
+	gullModel->initSize(45.0f, false);
+	gullModel->material = {
+		glm::vec3(0.5f, 0.5f, 0.5f), // color_diff
+		glm::vec3(0.7f, 0.7f, 0.7f), // color_spec
+		glm::vec3(0.6f, 0.6f, 0.6f), // color_ambi
+		0.25f // spec_shine
+	};
+	gullSpawner = new GullSpawner(gullGroup, gull, gullCount, gullHeight, gullSpeed);
 
 	// Add more models here
 	test = new Group();
@@ -181,8 +207,8 @@ void Window::initializeCamera()
 		V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		Window::usingCharCam = true;
 
-		Window::horizSens = 0.05f;
-		Window::vertSens = 0.025f;
+		Window::horizSens = 0.02f;
+		Window::vertSens = 0.01f;
 
 		Window::initCamera = true;
 	}
@@ -268,6 +294,7 @@ void Window::resize_callback(GLFWwindow* window, int width, int height)
 void Window::idle_callback()
 {
 	Window::handleMovement();
+	Window::gullSpawner->moveGulls();
 	world->update();
 }
 
@@ -598,16 +625,14 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 	{
 	case GLFW_PRESS:
 		glfwGetCursorPos(window, &Window::mousePosX, &Window::mousePosY);
-		std::cout << "x: " << Window::mousePosX << ", y: " << Window::mousePosY << std::endl;
+		//std::cout << "x: " << Window::mousePosX << ", y: " << Window::mousePosY << std::endl;
 		switch (button)
 		{
 		case GLFW_MOUSE_BUTTON_LEFT:
-			std::cout << "Mouse left-clicked." << std::endl;
 			Window::pressMouseLeft = true;
 			break;
 
 		case GLFW_MOUSE_BUTTON_RIGHT:
-			std::cout << "Mouse right-clicked." << std::endl;
 			Window::pressMouseRight = true;
 			break;
 
@@ -618,12 +643,10 @@ void Window::mouse_button_callback(GLFWwindow* window, int button, int action, i
 		switch (button)
 		{
 		case GLFW_MOUSE_BUTTON_LEFT:
-			std::cout << "Released mouse left-click." << std::endl;
 			Window::pressMouseLeft = false;
 			break;
 
 		case GLFW_MOUSE_BUTTON_RIGHT:
-			std::cout << "Released mouse right-click." << std::endl;
 			Window::pressMouseRight = false;
 			break;
 		}

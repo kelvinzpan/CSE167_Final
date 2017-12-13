@@ -128,7 +128,7 @@ void Window::initialize_objects()
 	terrainShaderProgram = LoadShaders(TERRAIN_VERTEX_SHADER_PATH, TERRAIN_FRAGMENT_SHADER_PATH);
 
 	// Set up particle effects
-	testSpawner = new ParticleSpawn();
+	testSpawner = new ParticleSpawn(2);
 
 	waterTest = new Water();
 
@@ -149,7 +149,7 @@ void Window::initialize_scene_graph()
 	playerModel = new Geode("res/objects/cat.obj");
 	playerMT->addChild(playerModel);
 	playerModel->setParentMT(playerMT);
-	playerModel->setParticleEffect();	//set this with fire / explosion numbers
+	playerModel->setParticleEffect(1);	//set this with fire / explosion numbers
 	playerModel->initSize(15.0f, false);
 	playerModel->dontDraw = true; // We are initially in FPS mode
 
@@ -162,6 +162,8 @@ void Window::initialize_scene_graph()
 	testMT->addChild(testModel);
 	testModel->setParentMT(testMT);
 	testModel->initSize(15.0f, false);
+	testMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)));
+	testModel->setParticleEffect(1);	//set this with fire / explosion numbers
 }
 
 void Window::initializeCamera()
@@ -491,6 +493,7 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		case GLFW_KEY_P:
 			Window::showParticleCount = !Window::showParticleCount;
 			playerModel->activeParticleEffect();
+			testModel->activeParticleEffect();
 			// TODO PARTICLE TOGGLE
 			break;
 

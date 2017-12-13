@@ -47,7 +47,7 @@ public:
 
 	void draw(GLuint program, glm::mat4 C);
 	void update();
-	void setParticleEffect();
+	void setParticleEffect(int type);
 	void activeParticleEffect();
 	void parse(const char * filepath);
 	void initSize(float scale, bool centeredOnFloor);

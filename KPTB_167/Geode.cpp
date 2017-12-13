@@ -95,6 +95,7 @@ void Geode::draw(GLuint program, glm::mat4 C)
 	{
 		glUseProgram(Window::particleShaderProgram);
 		particleEffect->draw(Window::particleShaderProgram, C);
+		glUseProgram(program);
 	}
 }
 
@@ -108,10 +109,10 @@ void Geode::activeParticleEffect()
 	particleActive = !particleActive;
 }
 
-void Geode::setParticleEffect()
+void Geode::setParticleEffect(int type)
 {
 	//only fire for now
-	particleEffect = new ParticleSpawn();
+	particleEffect = new ParticleSpawn(type);
 }
 
 void Geode::parse(const char * filepath)

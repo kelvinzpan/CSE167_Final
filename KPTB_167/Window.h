@@ -94,6 +94,9 @@ public:
 	static bool playerDamaged;
 	static int currDamageFrames;
 	static int maxDamageFrames;
+	static int currInvinFrames;
+	static int maxInvinFrames;
+	static bool playerInvin;
 	static void damagePlayer();
 	static float hurtDist;
 

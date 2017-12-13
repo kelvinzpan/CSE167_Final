@@ -74,6 +74,10 @@ Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
 
+Group* test;
+MatrixTransform* testMT;
+Geode* testModel;
+
 // Procedural terrain parameters
 int Window::terrainSize = 500; // How detailed
 int Window::terrainSeed = -1; // If -1, use default seed
@@ -149,6 +153,14 @@ void Window::initialize_scene_graph()
 	playerModel->dontDraw = true; // We are initially in FPS mode
 
 	// Add more models here
+	test = new Group();
+	world->addChild(test);
+	testMT = new MatrixTransform();
+	test->addChild(testMT);
+	testModel = new Geode("res/objects/gull.obj");
+	testMT->addChild(testModel);
+	testModel->setParentMT(testMT);
+	testModel->initSize(15.0f, false);
 }
 
 void Window::initializeCamera()

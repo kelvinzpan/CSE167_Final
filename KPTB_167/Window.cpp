@@ -83,10 +83,6 @@ int Window::gullCount = 50;
 float Window::gullHeight = 175.0f;
 float Window::gullSpeed = 1.0f;
 
-Group* test;
-MatrixTransform* testMT;
-Geode* testModel;
-
 // Procedural terrain parameters
 int Window::terrainSize = 500; // How detailed
 int Window::terrainSeed = -1; // If -1, use default seed
@@ -162,9 +158,9 @@ void Window::initialize_objects()
 	Window::currDamageFrames = 0;
 	Window::maxDamageFrames = 60;
 	Window::currInvinFrames = 0;
-	Window::maxInvinFrames = 360;
+	Window::maxInvinFrames = 120;
 	Window::playerInvin = false;
-	Window::hurtDist = 30.0f;
+	Window::hurtDist = 38.0f;
 		
 	std::cout << "Completed initialization of window objects." << std::endl;
 }
@@ -205,17 +201,7 @@ void Window::initialize_scene_graph()
 	gullSpawner = new GullSpawner(gullGroup, gull, gullCount, gullHeight, gullSpeed);
 
 	// Add more models here
-	test = new Group();
-	world->addChild(test);
-	testMT = new MatrixTransform();
-	test->addChild(testMT);
-	testModel = new Geode("res/objects/gull.obj");
-	testMT->addChild(testModel);
-	testModel->setParentMT(testMT);
-	testModel->initSize(15.0f, false);
-	testMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)));
-	testModel->setParticleEffect(1);	//set this with fire / explosion numbers
-	testMT->setTransMat(glm::translate(glm::mat4(1.0f), glm::vec3(0.1f, 0.0f, 0.0f)));
+
 }
 
 void Window::initializeCamera()
@@ -428,7 +414,9 @@ void Window::renderScene()
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(Window::particleShaderProgram);
-	testSpawner->draw(Window::particleShaderProgram, playerMT->newMat);
+	glm::mat4 offset = glm::translate(glm::mat4(1.0f), 6.0f * glm::normalize(glm::vec3(Window::currCam->cam_look_dir.x, 0.0f, Window::currCam->cam_look_dir.z)));
+	
+	testSpawner->draw(Window::particleShaderProgram, offset * playerMT->newMat);
 
 	if (!noWater)
 	{
@@ -603,7 +591,6 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		case GLFW_KEY_P:
 			playerModel->activeParticleEffect();
 			playerModel->particleEffect->showParticleCount = !playerModel->particleEffect->showParticleCount;
-			testModel->activeParticleEffect();
 			// TODO PARTICLE TOGGLE
 			break;
 

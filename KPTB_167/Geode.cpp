@@ -94,6 +94,7 @@ void Geode::draw(GLuint program, glm::mat4 C)
 	if (particleActive)
 	{
 		glUseProgram(Window::particleShaderProgram);
+
 		particleEffect->draw(Window::particleShaderProgram, C);
 		glUseProgram(program);
 	}

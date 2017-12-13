@@ -28,6 +28,7 @@
 #include "Terrain.h"
 #include "Water.h"
 #include "Camera.hpp"
+#include "GullSpawner.hpp"
 
 class Window
 {
@@ -82,6 +83,11 @@ public:
 	static bool playerSpeeding;
 	static void handleMovement();
 	static bool pressingW, pressingA, pressingS, pressingD;
+
+	static GullSpawner* gullSpawner;
+	static int gullCount;
+	static float gullHeight;
+	static float gullSpeed;
 
 	static Terrain* currTerrain;
 	static Terrain* baseTerrain;

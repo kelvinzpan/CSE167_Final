@@ -601,8 +601,8 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 
 		// Toggle particle effects AND particle count
 		case GLFW_KEY_P:
-			testSpawner->showParticleCount = !testSpawner->showParticleCount;
 			playerModel->activeParticleEffect();
+			playerModel->particleEffect->showParticleCount = !playerModel->particleEffect->showParticleCount;
 			testModel->activeParticleEffect();
 			// TODO PARTICLE TOGGLE
 			break;

@@ -112,7 +112,11 @@ int Window::highScore;
 bool Window::playerDamaged;
 int Window::currDamageFrames;
 int Window::maxDamageFrames;
+int Window::currInvinFrames;
+int Window::maxInvinFrames;
+bool Window::playerInvin;
 float Window::hurtDist;
+
 
 // Initialize all of our variables
 void Window::initialize_objects()
@@ -158,6 +162,9 @@ void Window::initialize_objects()
 	Window::currDamageFrames = 0;
 	Window::maxDamageFrames = 60;
 	Window::hurtDist = 5.0f;
+	Window::currInvinFrames = 0;
+	Window::maxInvinFrames = 360;
+	Window::playerInvin = false;
 		
 	std::cout << "Completed initialization of window objects." << std::endl;
 }
@@ -348,10 +355,15 @@ void Window::display_callback(GLFWwindow* window)
 		{
 			Window::currDamageFrames = 0;
 			Window::playerDamaged = false;
+			Window::currInvinFrames = 0;
+			Window::playerInvin = true;
 		}
 	}
 	else 
 	{
+		if (Window::playerInvin) Window::currInvinFrames++;
+		if (Window::currInvinFrames > Window::maxInvinFrames) Window::playerInvin = false;
+
 		Window::currScore++;
 		renderSceneClippingReflect();
 		renderSceneClippingRefract();

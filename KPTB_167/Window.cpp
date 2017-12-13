@@ -58,7 +58,7 @@ float Window::vertSens;
 float Window::playerSpeed = 0.3f;
 float Window::playerSpeedNorm = 0.3f;
 float Window::playerSpeedUp = 0.6f;
-float Window::playerSpeedDown = 0.05f;
+float Window::playerSpeedDown = 0.17f;
 bool Window::playerSpeeding = false;
 bool Window::pressingW = false;
 bool Window::pressingA = false;
@@ -73,6 +73,10 @@ MatrixTransform* world;
 Group* player;
 MatrixTransform* playerMT;
 Geode* playerModel;
+
+Group* test;
+MatrixTransform* testMT;
+Geode* testModel;
 
 // Procedural terrain parameters
 int Window::terrainSize = 500; // How detailed
@@ -150,6 +154,14 @@ void Window::initialize_scene_graph()
 	playerModel->dontDraw = true; // We are initially in FPS mode
 
 	// Add more models here
+	test = new Group();
+	world->addChild(test);
+	testMT = new MatrixTransform();
+	test->addChild(testMT);
+	testModel = new Geode("res/objects/gull.obj");
+	testMT->addChild(testModel);
+	testModel->setParentMT(testMT);
+	testModel->initSize(15.0f, false);
 }
 
 void Window::initializeCamera()

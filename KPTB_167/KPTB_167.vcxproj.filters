@@ -26,6 +26,7 @@
     <ClInclude Include="Water.h" />
     <ClInclude Include="PerlinNoise.hpp" />
     <ClInclude Include="Camera.hpp" />
+    <ClInclude Include="GullSpawner.hpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

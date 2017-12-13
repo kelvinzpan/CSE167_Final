@@ -32,7 +32,7 @@ ParticleSpawn::ParticleSpawn(int type)
 	glBindVertexArray(0);
 
 	textureID = loadTexture("res/textures/fire_texture.jpg");
-
+	showParticleCount = false;
 	for (int i = 0; i < maxParticles; i++)
 	{
 		Particle * p = new Particle();
@@ -45,22 +45,35 @@ void ParticleSpawn::setParticleType(int type)
 	if (type == 1)
 	{
 		isFire = true;
-		spawnRate = 200.0f;
-		maindir = glm::vec3(0.0f, 3.0f, 0.0f);
-		updateX = rand() % 10 / 10.0f + 0.2; //could use some work
-		updateZ = rand() % 10 / 10.0f + 0.2; //could use some work
-		updateY = 2.0f;
+		spawnRate = 450.0f;
+		maindir = glm::vec3(2.0f, 45.0f, 0.0f);
+		updateX = rand() % 10 / 10.0f ; //could use some work
+		updateZ = rand() % 10 / 10.0f ; //could use some work
+		updateY = 30.0f;
+		spread = 1.0f;
 		lifeLength = 3.0f;
 	}
-	else
+	else if(type == 2)
 	{
 		isExplosion = true;
-		maindir = glm::vec3(0.0f, 2.0f, 0.0f);
+		particleCount = maxParticles;
+		maindir = glm::vec3(0.0f, 1.0f, 0.0f);
 		updateX = rand() % 10 / 10.0f + 0.2f; //could use some work
 		updateZ = rand() % 10 / 10.0f + 0.2f; //could use some work
 		updateY = rand() % 10 / 10.0f + 0.2f; //could use some work
 		lifeLength = 4.0f;
 		generateOneTime(maxParticles); //explosion is just one big NUT and no regen
+	}
+	else if (type == 3)
+	{
+		isRevFire = true;
+		spawnRate = 450.0f;
+		maindir = glm::vec3(-2.0f, -45.0f, 0.0f);
+		updateX = -(rand() % 10 / 10.0f); //could use some work
+		updateZ = -(rand() % 10 / 10.0f); //could use some work
+		updateY = -30.0f;
+		spread = 1.0f;
+		lifeLength = 3.0f;
 	}
 }
 
@@ -116,13 +129,15 @@ void ParticleSpawn::generateParticles(int newparticles)
 		pContainer[particleIndex]->life = lifeLength;
 		pContainer[particleIndex]->pos = glm::vec3(0, 0, 0.0f);
 
-		float spread = 1.5f;
+
 		//glm::vec3 maindir = glm::vec3(0.0f, 3.0f, 0.0f);
 		glm::vec3 randomdir = glm::vec3(
 			(rand() % 2000 - 1000.0f) / 1000.0f,
 			(rand() % 2000 - 1000.0f) / 1000.0f,
 			(rand() % 2000 - 1000.0f) / 1000.0f
 		);
+		if (isRevFire)
+			randomdir = -randomdir;
 
 		pContainer[particleIndex]->speed = maindir + randomdir*spread;
 		
@@ -175,7 +190,7 @@ void ParticleSpawn::updateLiveParticles(double delta)
 			p->pos += p->speed * (float)delta;	
 			p->cameradistance = pow(glm::length(p->pos - Window::currCam->cam_pos), 2);
 
-			if (isFire)
+			if (isFire || isRevFire)
 			{			
 				//simulate fire color
 				if (p->life >= 2.625f)
@@ -293,15 +308,18 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 	double delta = currentTime - beginTime;
 	beginTime = currentTime;
 
-	if (isFire)
+	if (isFire || isRevFire)
 	{
 		int newparticles = (int)(delta*spawnRate);
 		if (newparticles > (int)(0.016f*spawnRate))
 			newparticles = (int)(0.016f*spawnRate);
 		generateParticles(newparticles);
 	}
-	
-	int particleCount = 0;
+
+	if (particleCount == 0 && isExplosion)
+		return;
+
+	particleCount = 0;
 	updateLiveParticles(delta);
 	SortParticles();
 
@@ -338,8 +356,8 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 	//Unbind the VAO when we're done so we don't accidentally draw extra stuff or tamper with its bound buffers
 	glBindVertexArray(0);
 	
-	//if(Window::showParticleCount)
-		//std::cout << "Currently alive particle count: " << particleCount << std::endl;
+	if(showParticleCount)
+		std::cout << "Currently alive particle count: " << particleCount << std::endl;
 }
 
 void ParticleSpawn::modelTransposeViewRotation(glm::vec3 pos)

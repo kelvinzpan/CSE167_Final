@@ -194,6 +194,8 @@ void Window::initialize_scene_graph()
 	gullMT->addChild(gullModel);
 	gullModel->setParentMT(gullMT);
 	gullModel->initSize(45.0f, false);
+	gullModel->setParticleEffect(3);
+	gullModel->activeParticleEffect();
 	gullModel->material = {
 		glm::vec3(0.5f, 0.5f, 0.5f), // color_diff
 		glm::vec3(0.7f, 0.7f, 0.7f), // color_spec
@@ -213,6 +215,7 @@ void Window::initialize_scene_graph()
 	testModel->initSize(15.0f, false);
 	testMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 10.0f, 0.0f)));
 	testModel->setParticleEffect(1);	//set this with fire / explosion numbers
+	testMT->setTransMat(glm::translate(glm::mat4(1.0f), glm::vec3(0.1f, 0.0f, 0.0f)));
 }
 
 void Window::initializeCamera()
@@ -425,7 +428,7 @@ void Window::renderScene()
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(Window::particleShaderProgram);
-	testSpawner->draw(Window::particleShaderProgram, Window::C);
+	testSpawner->draw(Window::particleShaderProgram, playerMT->newMat);
 
 	if (!noWater)
 	{
@@ -550,6 +553,7 @@ void Window::damagePlayer()
 	//V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 
 	// TODO Explosion animation on hurt
+	testSpawner->generateOneTime(testSpawner->maxParticles);
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -595,7 +599,7 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 
 		// Toggle particle effects AND particle count
 		case GLFW_KEY_P:
-			Window::showParticleCount = !Window::showParticleCount;
+			testSpawner->showParticleCount = !testSpawner->showParticleCount;
 			playerModel->activeParticleEffect();
 			testModel->activeParticleEffect();
 			// TODO PARTICLE TOGGLE

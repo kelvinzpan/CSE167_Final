@@ -91,6 +91,13 @@ public:
 			}
 		}
 	}
+
+	glm::vec3 getRandomGullPos()
+	{
+		float r = ((float)rand() / (RAND_MAX)); // between 0 and 1
+		int i = (int) r * this->count;
+		return glm::vec3( this->flock[i]->newMat[3][0], this->flock[i]->newMat[3][1], this->flock[i]->newMat[3][2] );
+	}
 };
 
 #endif

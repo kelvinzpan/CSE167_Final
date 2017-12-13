@@ -3,6 +3,7 @@
 
 #include "Node.h"
 #include "MatrixTransform.h"
+#include "ParticleSpawn.h"
 
 // Used for realistic lighting
 struct Material
@@ -34,6 +35,8 @@ public:
 	MatrixTransform * parentMT;
 	glm::vec3 maxCoord;
 	glm::vec3 minCoord;
+	bool particleActive = false;
+	ParticleSpawn * particleEffect;
 
 	bool dontDraw;
 
@@ -44,6 +47,8 @@ public:
 
 	void draw(GLuint program, glm::mat4 C);
 	void update();
+	void setParticleEffect();
+	void activeParticleEffect();
 	void parse(const char * filepath);
 	void initSize(float scale, bool centeredOnFloor);
 	void setParentMT(MatrixTransform * parent);

@@ -1,4 +1,5 @@
 #include "ParticleSpawn.h"
+#include "Window.h"
 #include "stb_image.h"
 
 ParticleSpawn::ParticleSpawn()

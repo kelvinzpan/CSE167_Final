@@ -15,7 +15,7 @@
 
 #include <glm/mat4x4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include "Window.h"
+//#include "Window.h"
 #include <vector>
 #include <iostream>
 #include <algorithm>

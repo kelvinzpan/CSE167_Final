@@ -40,7 +40,7 @@ GLint waterShaderProgram;
 #define WATER_FRAGMENT_SHADER_PATH "waterShader.frag"
 
 // Particle shader
-GLint particleShaderProgram;
+GLint Window::particleShaderProgram;
 #define PARTICLE_VERTEX_SHADER_PATH "particleShader.vert"
 #define PARTICLE_FRAGMENT_SHADER_PATH "particleShader.frag"
 
@@ -102,7 +102,7 @@ void Window::initialize_objects()
 	// Load the shader program. Make sure you have the correct filepath up top
 	toonShaderProgram = LoadShaders(TOON_VERTEX_SHADER_PATH, TOON_FRAGMENT_SHADER_PATH);
 	waterShaderProgram = LoadShaders(WATER_VERTEX_SHADER_PATH, WATER_FRAGMENT_SHADER_PATH);
-	particleShaderProgram = LoadShaders(PARTICLE_VERTEX_SHADER_PATH, PARTICLE_FRAGMENT_SHADER_PATH);
+	Window::particleShaderProgram = LoadShaders(PARTICLE_VERTEX_SHADER_PATH, PARTICLE_FRAGMENT_SHADER_PATH);
 
 	// Set up skybox
 	Window::skybox = new Skybox();
@@ -145,6 +145,7 @@ void Window::initialize_scene_graph()
 	playerModel = new Geode("res/objects/cat.obj");
 	playerMT->addChild(playerModel);
 	playerModel->setParentMT(playerMT);
+	playerModel->setParticleEffect();	//set this with fire / explosion numbers
 	playerModel->initSize(15.0f, false);
 	playerModel->dontDraw = true; // We are initially in FPS mode
 
@@ -323,8 +324,8 @@ void Window::renderScene()
 	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
 	world->draw(toonShaderProgram, Window::C);
 
-	glUseProgram(particleShaderProgram);
-	testSpawner->draw(particleShaderProgram, Window::C);
+	glUseProgram(Window::particleShaderProgram);
+	testSpawner->draw(Window::particleShaderProgram, Window::C);
 
 	if (!noWater)
 	{
@@ -477,6 +478,7 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		// Toggle particle effects AND particle count
 		case GLFW_KEY_P:
 			Window::showParticleCount = !Window::showParticleCount;
+			playerModel->activeParticleEffect();
 			// TODO PARTICLE TOGGLE
 			break;
 

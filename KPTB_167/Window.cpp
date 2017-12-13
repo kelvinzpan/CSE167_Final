@@ -106,6 +106,13 @@ Water * waterTest;
 
 GLuint clippingPlaneLoc;
 
+// Scoring parameters
+int Window::currScore;
+int Window::highScore;
+bool Window::playerDamaged;
+int Window::currDamageFrames;
+int Window::maxDamageFrames;
+
 // Initialize all of our variables
 void Window::initialize_objects()
 {
@@ -142,6 +149,13 @@ void Window::initialize_objects()
 
 	// Set up scene graph
 	initialize_scene_graph();
+
+	// Set up scoring
+	Window::currScore = 0;
+	Window::highScore = 0;
+	Window::playerDamaged = false;
+	Window::currDamageFrames = 0;
+	Window::maxDamageFrames = 60;
 		
 	std::cout << "Completed initialization of window objects." << std::endl;
 }
@@ -164,7 +178,7 @@ void Window::initialize_scene_graph()
 
 	gullGroup = new Group();
 	world->addChild(gullGroup);
-	gull = new Group(); // Only render one gull
+	gull = new Group(); // THIS IS THE ONLY GULL THAT IS ACTUALLY CREATED
 	gullMT = new MatrixTransform();
 	gullModel = new Geode("res/objects/gull.obj");
 	gull->addChild(gullMT);
@@ -301,6 +315,7 @@ void Window::idle_callback()
 {
 	Window::handleMovement();
 	Window::gullSpawner->moveGulls();
+
 	world->update();
 }
 
@@ -310,13 +325,28 @@ void Window::display_callback(GLFWwindow* window)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable(GL_CLIP_DISTANCE0);
 
-	renderSceneClippingReflect();	
-	renderSceneClippingRefract(); 	
+	// Render red screen while damaged
+	if (Window::playerDamaged)
+	{
+		Window::currDamageFrames++;
+		if (Window::currDamageFrames > Window::maxDamageFrames)
+		{
+			Window::currDamageFrames = 0;
+			Window::playerDamaged = false;
+		}
+	}
+	else 
+	{
+		Window::currScore++;
+		renderSceneClippingReflect();
+		renderSceneClippingRefract();
 
-	renderScene();
+		renderScene();
 
-	// Gets events, including input such as keyboard and mouse or window resizing
-	glfwPollEvents();
+		// Gets events, including input such as keyboard and mouse or window resizing
+		glfwPollEvents();
+	}
+
 	// Swap buffers
 	glfwSwapBuffers(window);
 }
@@ -392,7 +422,7 @@ void Window::renderScene()
 
 void Window::handleMovement()
 {
-	if (Window::usingCharCam)
+	if (Window::usingCharCam && !Window::playerDamaged)
 	{
 		float yThreshold = -2.0f;
 		if (playerMT->newMat[3][1] < 0.0f)
@@ -476,6 +506,24 @@ void Window::handleMovement()
 			V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
 		}
 	}
+}
+
+void Window::damagePlayer()
+{
+	Window::playerDamaged = true;
+	Window::highScore = std::max(Window::highScore, Window::currScore);
+	
+	std::cout << "You were damaged! Your score was: " << Window::currScore << "." << std::endl;
+	std::cout << "Your high score is: " << Window::highScore << "." << std::endl;
+		
+	Window::currScore = 0;
+
+	// Teleport player back to center, SCRAPPED IT IS BUGGY
+	//playerMT->translateOnce(glm::translate(glm::mat4(1.0f), glm::vec3(-playerMT->newMat[3][0], -playerMT->newMat[3][1], -playerMT->newMat[3][2])));
+	//Window::currCam->setPos(glm::vec3(playerMT->newMat[3][0], playerMT->newMat[3][1] + Window::fpsYOffset, playerMT->newMat[3][2]));
+	//V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
+
+	// TODO Explosion animation on hurt
 }
 
 void Window::key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
@@ -588,6 +636,11 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		// Press to increase speed
 		case GLFW_KEY_LEFT_SHIFT:
 			Window::playerSpeeding = true;
+			break;
+
+		// Press to damage the player and reset the score
+		case GLFW_KEY_X:
+			Window::damagePlayer();
 			break;
 		}
 		break; // End of GLFW_PRESS

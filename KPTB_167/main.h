@@ -1,3 +1,6 @@
+// Zi Long (Kelvin) Pan
+// Timothy Bian
+
 #ifndef _MAIN_H_
 #define _MAIN_H_
 

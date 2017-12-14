@@ -8,15 +8,21 @@ ParticleSpawn::ParticleSpawn(int type)
 	pContainer = std::vector<Particle*>(maxParticles);
 
 	GLfloat vertices[] = {
-		0.0f, 1.0f, 0.0f, 1.0f,
+		0.0f, 30.0f, 0.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f,
 
-		0.0f, 1.0f, 0.0f, 1.0f,
-		1.0f, 1.0f, 1.0f, 1.0f,
+		0.0f, 30.0f, 0.0f, 1.0f,
+		1.0f, 30.0f, 1.0f, 1.0f,
 		1.0f, 0.0f, 1.0f, 0.0f
 	};
 
+	if (type == 2 || type == 1)
+	{
+		vertices[1] = 1.0f;
+		vertices[13] = 1.0f;
+		vertices[17] = 1.0f;
+	}
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 
@@ -57,21 +63,21 @@ void ParticleSpawn::setParticleType(int type)
 	{
 		isExplosion = true;
 		maindir = glm::vec3(0.0f, 1.0f, 0.0f);
-		updateX = rand() % 10 / 10.0f + 0.2f; //could use some work
-		updateZ = rand() % 10 / 10.0f + 0.2f; //could use some work
-		updateY = rand() % 10 / 10.0f + 0.2f; //could use some work
-		lifeLength = 4.0f;
+		updateX = rand() % 10 / 10.0f + 0.4f; //could use some work
+		updateZ = rand() % 10 / 10.0f + 0.4f; //could use some work
+		updateY = rand() % 10 / 10.0f + 0.4f; //could use some work
+		lifeLength = 3.0f;
 		generateOneTime(maxParticles); //explosion is just one big NUT and no regen
 	}
 	else if (type == 3)
 	{
 		isRevFire = true;
-		spawnRate = 450.0f;
-		maindir = glm::vec3(-2.0f, -45.0f, 0.0f);
+		spawnRate = 800.0f;
+		maindir = glm::vec3(-1.0f, -30.0f, 0.0f);
 		updateX = -(rand() % 10 / 10.0f); //could use some work
 		updateZ = -(rand() % 10 / 10.0f); //could use some work
 		updateY = -30.0f;
-		spread = 1.0f;
+		spread = 3.0f;
 		lifeLength = 3.0f;
 	}
 }
@@ -189,9 +195,8 @@ void ParticleSpawn::updateLiveParticles(double delta)
 			p->speed += glm::vec3(updateX, updateY, updateZ)  * (float)delta * 0.5f;
 			p->pos += p->speed * (float)delta;	
 			p->cameradistance = pow(glm::length(p->pos - Window::currCam->cam_pos), 2);
-
-			if (isFire || isRevFire)
-			{			
+			if (isFire)
+			{
 				//simulate fire color
 				if (p->life >= 2.625f)
 				{
@@ -234,6 +239,64 @@ void ParticleSpawn::updateLiveParticles(double delta)
 					p->r = 0.252f;
 					p->g = 0.189f;
 					p->b = 0.133f;
+				}
+			}
+			if (isRevFire)
+			{			
+				//simulate fire color
+				if (p->life >= 2.625f)
+				{
+					p->r = 0.0f;
+					p->g = 0.392f;
+					p->b = 0.824f;
+				}
+				else if (p->life >= 2.25f)
+				{
+					p->r = 0.431f;
+					p->g = 0.824f;
+					p->b = 1.0f;
+				}
+				else if (p->life >= 1.875f)
+				{
+					p->r = 0.51f;
+					p->g = 0.902f;
+					p->b = 1.0f;
+				}
+				else if (p->life >= 1.5f)
+				{
+					p->r = 0.62f;
+					p->g = 1.0f;
+					p->b = 1.0f;
+				}
+				else if (p->life >= 1.125f)
+				{
+					p->r = 0.73f;
+					p->g = 1.0f;
+					p->b = 1.0f;
+				}
+				else if (p->life >= 0.75f)
+				{
+					p->r = 0.84f;
+					p->g = 1.0f;
+					p->b = 1.0f;
+				}
+				else if (p->life >= 0.375f)
+				{
+					p->r = 0.95f;
+					p->g = 1.0f;
+					p->b = 1.0f;
+				}
+				else if (p->life >= 0.15f)
+				{
+					p->r = 1.0f;
+					p->g = 1.0f;
+					p->b = 1.0f;
+				}
+				else
+				{
+					p->r = 1.0f;
+					p->g = 1.0f;
+					p->b = 1.0f;
 				}
 			}
 			else if(isExplosion)
@@ -302,17 +365,29 @@ void ParticleSpawn::SortParticles() {
 
 void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 {
+	if (isRevFire)
+	{
+		glm::mat4 offset = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, -30.0f, 0.0f));
+		c = offset * c;
+	}
 	toWorld = c;
 	shaderProgram = shader;
 	double currentTime = glfwGetTime();
 	double delta = currentTime - beginTime;
 	beginTime = currentTime;
 
-	if (isFire || isRevFire)
+	if (isFire)
 	{
 		int newparticles = (int)(delta*spawnRate);
 		if (newparticles > (int)(0.016f*spawnRate))
 			newparticles = (int)(0.016f*spawnRate);
+		generateParticles(newparticles);
+	}
+	else if (isRevFire)
+	{
+		int newparticles = (int)(delta*spawnRate);
+		if (newparticles > (int)(0.030f*spawnRate))
+			newparticles = (int)(0.030f*spawnRate);
 		generateParticles(newparticles);
 	}
 
@@ -334,6 +409,7 @@ void ParticleSpawn::draw(GLint shader, glm::mat4 c)
 		Particle * p = pContainer[i];
 
 		if (p->life > 0.0f) {
+
 
 			//this way the texture isn't 2d. reset toWorld each time
 			toWorld = c;

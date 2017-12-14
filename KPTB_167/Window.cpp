@@ -94,6 +94,7 @@ Terrain* Window::currTerrain;
 Terrain* Window::baseTerrain;
 Terrain* Window::randTerrain;
 bool Window::showingRand = false;
+bool Window::show3DWater = false;
 int Window::randSeed;
 
 // Particle effect parameters
@@ -101,6 +102,9 @@ ParticleSpawn * testSpawner;
 Water * waterTest;
 
 GLuint clippingPlaneLoc;
+GLuint clippingPlaneToon;
+GLuint clippingPlaneTerrain;
+GLuint clippingPlaneParticle;
 
 // Scoring parameters
 int Window::currScore;
@@ -147,7 +151,9 @@ void Window::initialize_objects()
 	waterTest = new Water();
 
 	clippingPlaneLoc = glGetUniformLocation(skyboxShaderProgram, "clippingPlane");
-
+	clippingPlaneToon = glGetUniformLocation(toonShaderProgram, "clippingPlane");
+	clippingPlaneTerrain = glGetUniformLocation(terrainShaderProgram, "clippingPlane");
+	clippingPlaneParticle = glGetUniformLocation(particleShaderProgram, "clippingPlane");
 	// Set up scene graph
 	initialize_scene_graph();
 
@@ -379,17 +385,19 @@ void Window::renderSceneClippingReflect()
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
 
-	if (!noTerrain)
+	if(show3DWater)
 	{
 		glUseProgram(terrainShaderProgram);
-		glUniform4f(glGetUniformLocation(terrainShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+		glUniform4f(clippingPlaneTerrain, plane.x, plane.y, plane.z, plane.w);
 		Window::currTerrain->draw(terrainShaderProgram, Window::C);
+		glUseProgram(Window::particleShaderProgram);
+		glUniform4f(clippingPlaneParticle, plane.x, plane.y, plane.z, plane.w);
+		// Use the shader of programID
+		glUseProgram(toonShaderProgram);
+		glUniform4f(clippingPlaneToon, plane.x, plane.y, plane.z, plane.w);
+		world->draw(toonShaderProgram, Window::C);
 	}
 
-	// Use the shader of programID
-	glUseProgram(toonShaderProgram);
-	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
-	world->draw(toonShaderProgram, Window::C);
 
 	waterTest->unbindBuffer();
 	Window::currCam->cam_pos.y += distance;
@@ -402,22 +410,28 @@ void Window::renderSceneClippingRefract()
 	waterTest->bindRefractionBuffer();
 
 	glm::vec4 plane = glm::vec4(0.0f, -1.0f, 0.0f, 0.0f);
+
+	if (show3DWater)
+	{
+		glUseProgram(terrainShaderProgram);
+		glUniform4f(clippingPlaneTerrain, plane.x, plane.y, plane.z, plane.w);
+		Window::currTerrain->draw(terrainShaderProgram, Window::C);
+
+		glUseProgram(Window::particleShaderProgram);
+		glUniform4f(clippingPlaneParticle, plane.x, plane.y, plane.z, plane.w);
+
+		// Use the shader of programID
+		glUseProgram(toonShaderProgram);
+		glUniform4f(clippingPlaneToon, plane.x, plane.y, plane.z, plane.w);
+		world->draw(toonShaderProgram, Window::C);
+	}
+
+
 	glUniform4f(clippingPlaneLoc, plane.x, plane.y, plane.z, plane.w);
 	// Skybox (MUST DRAW LAST)
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
-	
-	if (!noTerrain)
-	{
-		glUseProgram(terrainShaderProgram);
-		glUniform4f(glGetUniformLocation(terrainShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
-		Window::currTerrain->draw(terrainShaderProgram, Window::C);
-	}
 
-	// Use the shader of programID
-	glUseProgram(toonShaderProgram);
-	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
-	world->draw(toonShaderProgram, Window::C);
 
 	waterTest->unbindBuffer();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -428,13 +442,15 @@ void Window::renderScene()
 	if (!noTerrain)
 	{
 		glUseProgram(terrainShaderProgram);
-		glUniform4f(glGetUniformLocation(terrainShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+		glUniform4f(clippingPlaneTerrain, 0.0f, 1.0f, 0.0f, 10000000000.0f);
 		Window::currTerrain->draw(terrainShaderProgram, Window::C);
 	}
+	glUseProgram(Window::particleShaderProgram);
+	glUniform4f(clippingPlaneParticle, 0.0f, 1.0f, 0.0f, 10000000000.0f);
 
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
-	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+	glUniform4f(clippingPlaneToon, 0.0f, 1.0f, 0.0f, 10000000000.0f);
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(Window::particleShaderProgram);
@@ -626,6 +642,10 @@ void Window::key_callback(GLFWwindow* window, int key, int scancode, int action,
 		// Toggle rendering water
 		case GLFW_KEY_L:
 			Window::noWater = !Window::noWater;
+			break;
+
+		case GLFW_KEY_H:
+			Window::show3DWater = !Window::show3DWater;
 			break;
 
 		// Toggle FPS camera locked to character

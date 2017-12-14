@@ -48,6 +48,7 @@ public:
 	static bool pressMouseLeft;
 	static bool pressMouseRight;
 	static bool showParticleCount;
+	static bool show3DWater;
 	static bool noTerrain;
 	static bool noWater;
 	static double mousePosX;

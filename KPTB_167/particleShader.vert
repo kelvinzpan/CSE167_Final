@@ -15,9 +15,13 @@ uniform mat4 projection;
 uniform mat4 modelview;
 uniform vec3 instancePos;
 uniform vec4 instanceColor;
+uniform vec4 clippingPlane;
 
 void main()
 {
+	vec4 worldPos = mat4(1.0f) * vec4(position, 1.0f);
+	gl_ClipDistance[0] = dot(worldPos, clippingPlane);
+
 	vec4 particlePos = vec4(position.x + instancePos.x, position.y + instancePos.y, position.z + instancePos.z, 1.0f);
 	// Output position of the vertex
 	gl_Position = projection * modelview * particlePos;

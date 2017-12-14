@@ -393,6 +393,18 @@ void Window::renderSceneClippingReflect()
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
 
+	if (!noTerrain)
+	{
+		glUseProgram(terrainShaderProgram);
+		glUniform4f(glGetUniformLocation(terrainShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+		Window::currTerrain->draw(terrainShaderProgram, Window::C);
+	}
+
+	// Use the shader of programID
+	glUseProgram(toonShaderProgram);
+	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+	world->draw(toonShaderProgram, Window::C);
+
 	waterTest->unbindBuffer();
 	Window::currCam->cam_pos.y += distance;
 	V = glm::lookAt(Window::currCam->cam_pos, Window::currCam->cam_look_at, Window::currCam->cam_up);
@@ -409,6 +421,18 @@ void Window::renderSceneClippingRefract()
 	glUseProgram(Window::skyboxShaderProgram);
 	Window::skybox->draw(Window::skyboxShaderProgram);
 	
+	if (!noTerrain)
+	{
+		glUseProgram(terrainShaderProgram);
+		glUniform4f(glGetUniformLocation(terrainShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+		Window::currTerrain->draw(terrainShaderProgram, Window::C);
+	}
+
+	// Use the shader of programID
+	glUseProgram(toonShaderProgram);
+	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), plane.x, plane.y, plane.z, plane.w);
+	world->draw(toonShaderProgram, Window::C);
+
 	waterTest->unbindBuffer();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
@@ -418,13 +442,13 @@ void Window::renderScene()
 	if (!noTerrain)
 	{
 		glUseProgram(terrainShaderProgram);
-		glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+		glUniform4f(glGetUniformLocation(terrainShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
 		Window::currTerrain->draw(terrainShaderProgram, Window::C);
 	}
 
 	// Use the shader of programID
 	glUseProgram(toonShaderProgram);
-	glUniform4f(glGetUniformLocation(skyboxShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
+	glUniform4f(glGetUniformLocation(toonShaderProgram, "clippingPlane"), 0.0f, 0.0f, 0.0f, 0.0f);
 	world->draw(toonShaderProgram, Window::C);
 
 	glUseProgram(Window::particleShaderProgram);
